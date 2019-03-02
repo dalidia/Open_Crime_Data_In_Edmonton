@@ -49,13 +49,22 @@ def display_pages():
     return
 
 def second_task():
-    global c
+    global conn, c
     display_pages()
-    paper = (input("Choose the number of the paper to be selected\n"))
-    p_title = (paper,)
-    c.executescript("select reviewer from papers p, expertise e where p.area=e.area and p.title=?\
-                     EXCEPT\
-                    select reviewer from papers p, reviews r where p.id=r.paper and p.title=?;", p_title,p_title)    
+    paper = input("Choose the number of the paper to be selected\n")
+    p_title = (paper,paper)
+    c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
+            EXCEPT select reviewer from papers p, reviews r 
+            where p.id=r.paper and p.title=?;''', p_title)
+    rows = c.fetchall()
+    size_rows = len(rows)
+
+    if (size_rows == 0):
+        print("Potential reviewers not assigned")
+    else:
+       for i in range(0,size_rows):
+           print(rows[i][0])
+    
     return
 
 def first_task():
@@ -74,7 +83,6 @@ def first_task():
     else:
        for i in range(0,size_rows):
            print(rows[i][0])
-
     return
 
 
