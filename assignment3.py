@@ -14,13 +14,13 @@ def connect(path):
     conn.commit()
     return
 
-def first_task():
+def display_pages():
     global conn, c
     df = pd.read_sql_query("SELECT title FROM papers;", conn)
     size = len(df)
     first_page = 0
     last_page = 5
-    print(df.iloc[:last_page])
+    print(df.iloc[:last_page,0:1])
     selection =''
 
     # Show all papers
@@ -45,14 +45,24 @@ def first_task():
                 print(df.iloc[first_page:last_page])
         else:
             selection = "E"
+    paper = (input("Choose the number of the paper to be selected\n"))
+    p_title = (paper,)
+    return
+def second_task():
+    pass
+def first_task():
+    display_pages()
 
     # allow one paper to be selected
-    paper = int(input("Choose the number of the paper to be selected\n"))
-    p_id = (paper,)
-    c.execute("select reviewer from papers p, reviews r where p.id=r.paper and p.id=?;",p_id)
+    c.execute("select reviewer from papers p, reviews r where p.id=r.paper and p.title=?;",p_title)
     rows = c.fetchall()
-    print(rows)
+    size_rows = len(rows)
 
+    if (size_rows == 0):
+        print("Reviewer not assigned")
+    else:
+       for i in range(0,size_rows):
+           print(rows[i][0])
 
 
     return
