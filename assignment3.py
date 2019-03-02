@@ -8,6 +8,7 @@ c = None
 # connects database 
 def connect(path):
     global conn, c
+
     conn = sqlite3.connect(path)
     c =conn.cursor()
     c.execute('PRAGMA foreign_keys=ON; ')
@@ -18,6 +19,7 @@ def display_pages():
     global conn, c
 
     df = pd.read_sql_query("SELECT title FROM papers;", conn)
+
     size = len(df)
     first_page = 0
     last_page = 5
@@ -29,7 +31,7 @@ def display_pages():
         selection = input("Select 'N' for next page, 'P' for previous or 'E' to exit\n")
         if selection.upper() == 'N':
             if (last_page) >= size:
-                print("Page does not exist")
+                print("Page does not exist. Try again.")
 
             else :
                 first_page = last_page
@@ -38,7 +40,7 @@ def display_pages():
             
         elif selection.upper() == 'P':
             if (first_page) <= 0:
-                print("Page does not exist")
+                print("Page does not exist. Try again.")
                 
             else:
                 first_page -=5
@@ -91,6 +93,47 @@ def second_task():
     conn.commit()
     return
 
+def fourth_task():
+    global conn, c
+
+    query = "SELECT author, COUNT(csession) as count FROM papers GROUP BY author"
+    df = pd.read_sql_query(query, conn)
+    
+    while(True):
+        option = input('''Select 1 if you want see a barplot of all individual authors and how many sessions they participate in, or 2 if you want to be provided with a number for a selected individual\n''')
+        if option == '1' or option == '2':
+            break
+        print("Your answer is not valid. Please try again.")
+
+    if option == '1':
+        # graph the bar plot
+        plot = df.plot.bar(x="author")
+        plt.plot()
+        plt.show()
+    else:
+        c.execute(query)
+        rows = c.fetchall()
+        size = len(rows)
+
+        # check if rows is empty SHOULD I PUT THIS???
+        if size == 0:
+            print("There's no input")
+
+        author = input("Provide the author\n")
+        
+        found = False
+        # look for author
+        for i in range(0,size):
+            if rows[i][0] == author:
+                print(rows[i][1])
+                found = True
+        
+        if(not found):
+            print("Author could not be found. Invalid author.")
+
+
+    return
+
 # selects which questions to run 
 def select_options():
     
@@ -100,7 +143,9 @@ def main():
     global conn, c
     path = "a2.db"
     connect(path)
-    second_task()
+    #first_task()
+    #second_task()
+    fourth_task()
 
     conn.commit()
     conn.close()
