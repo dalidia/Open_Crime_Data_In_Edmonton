@@ -1,2 +1,5 @@
-# 291_Gang
-291 assignment 3
+names:                      ccid:
+
+Lidia Ataupillco Ramos      ataupill
+Payas Singh                 payas
+Emery Smith                 ejs
