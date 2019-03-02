@@ -10,7 +10,9 @@ def database_name():
     global conn, c
     conn = sqlite3.connect(database)
     c =conn.cursor()
-    pass
+    c.execute('PRAGMA foreign_keys=ON; ')
+    conn.commit()
+    return
 
 # selects which questions to run 
 def select_options():
@@ -19,7 +21,7 @@ def select_options():
 
 def main():
     global conn, c
-    database = input("Input the name of the database\n")
+    path = "\movie.db"
     pass
 
 main()
