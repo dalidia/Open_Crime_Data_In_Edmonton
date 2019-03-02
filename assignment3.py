@@ -131,7 +131,7 @@ def fourth_task():
         if(not found):
             print("Author could not be found. Invalid author.")
 
-
+    conn.commit()
     return
 
 # selects which questions to run 
