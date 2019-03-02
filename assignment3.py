@@ -1,4 +1,4 @@
-
+import matplotlib.pyplot as plt
 import sqlite3
 import pandas as pd
 
@@ -16,6 +16,7 @@ def connect(path):
 
 def display_pages():
     global conn, c
+
     df = pd.read_sql_query("SELECT title FROM papers;", conn)
     size = len(df)
     first_page = 0
@@ -48,25 +49,6 @@ def display_pages():
     
     return
 
-def second_task():
-    global conn, c
-    display_pages()
-    paper = input("Choose the number of the paper to be selected\n")
-    p_title = (paper,paper)
-    c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
-            EXCEPT select reviewer from papers p, reviews r 
-            where p.id=r.paper and p.title=?;''', p_title)
-    rows = c.fetchall()
-    size_rows = len(rows)
-
-    if (size_rows == 0):
-        print("Potential reviewers not assigned")
-    else:
-       for i in range(0,size_rows):
-           print(rows[i][0])
-    
-    return
-
 def first_task():
     global conn, c
     display_pages()
@@ -85,6 +67,25 @@ def first_task():
            print(rows[i][0])
     return
 
+def second_task():
+    global conn, c
+
+    display_pages()
+    paper = input("Choose the number of the paper to be selected\n")
+    p_title = (paper,paper)
+    c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
+            EXCEPT select reviewer from papers p, reviews r 
+            where p.id=r.paper and p.title=?;''', p_title)
+    rows = c.fetchall()
+    size_rows = len(rows)
+
+    if (size_rows == 0):
+        print("Potential reviewers not assigned")
+    else:
+       for i in range(0,size_rows):
+           print(rows[i][0])
+    
+    return
 
 # selects which questions to run 
 def select_options():
