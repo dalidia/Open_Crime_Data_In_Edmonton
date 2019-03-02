@@ -76,7 +76,7 @@ def second_task():
     global conn, c
 
     display_pages()
-    paper = input("Choose the number of the paper to be selected\n")
+    paper = input("Choose the name of the paper to be selected\n")
     p_title = (paper,paper)
     c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
             EXCEPT select reviewer from papers p, reviews r 
@@ -143,9 +143,9 @@ def main():
     global conn, c
     path = "a2.db"
     connect(path)
-    #first_task()
-    #second_task()
-    fourth_task()
+    first_task()
+    second_task()
+    #fourth_task()
 
     conn.commit()
     conn.close()
