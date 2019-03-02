@@ -21,7 +21,8 @@ def select_options():
 
 def main():
     global conn, c
-    path = "\movie.db"
+    path = "a2.db"
+
     pass
 
 main()
