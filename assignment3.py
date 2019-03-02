@@ -20,7 +20,7 @@ def first_task():
     size = len(df)
     first_page = 0
     last_page = 5
-    print(df.iloc[:last_page])
+    print(df.iloc[:last_page,0:1])
     selection =''
 
     # Show all papers
@@ -47,12 +47,17 @@ def first_task():
             selection = "E"
 
     # allow one paper to be selected
-    paper = int(input("Choose the number of the paper to be selected\n"))
-    p_id = (paper,)
-    c.execute("select reviewer from papers p, reviews r where p.id=r.paper and p.id=?;",p_id)
+    paper = (input("Choose the number of the paper to be selected\n"))
+    p_title = (paper,)
+    c.execute("select reviewer from papers p, reviews r where p.id=r.paper and p.title=?;",p_title)
     rows = c.fetchall()
-    print(rows)
+    size_rows = len(rows)
 
+    if (size_rows == 0):
+        print("Reviewer not assigned")
+    else:
+       for i in range(0,size_rows):
+           print(rows[i][0])
 
 
     return
