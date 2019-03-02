@@ -45,14 +45,18 @@ def display_pages():
                 print(df.iloc[first_page:last_page])
         else:
             selection = "E"
-    paper = (input("Choose the number of the paper to be selected\n"))
-    p_title = (paper,)
+    
     return
 def second_task():
+    global conn, c
     pass
+
 def first_task():
+    global conn, c
     display_pages()
 
+    paper = (input("Choose the number of the paper to be selected\n"))
+    p_title = (paper,)
     # allow one paper to be selected
     c.execute("select reviewer from papers p, reviews r where p.id=r.paper and p.title=?;",p_title)
     rows = c.fetchall()
