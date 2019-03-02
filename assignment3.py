@@ -47,6 +47,7 @@ def display_pages():
         else:
             selection = "E"
     
+    conn.commit()
     return
 
 def first_task():
@@ -65,6 +66,8 @@ def first_task():
     else:
        for i in range(0,size_rows):
            print(rows[i][0])
+    
+    conn.commit()
     return
 
 def second_task():
@@ -85,6 +88,7 @@ def second_task():
        for i in range(0,size_rows):
            print(rows[i][0])
     
+    conn.commit()
     return
 
 # selects which questions to run 
@@ -97,5 +101,8 @@ def main():
     path = "a2.db"
     connect(path)
     second_task()
+
+    conn.commit()
+    conn.close()
 
 main()
