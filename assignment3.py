@@ -47,9 +47,16 @@ def display_pages():
             selection = "E"
     
     return
+
 def second_task():
-    global conn, c
-    pass
+    global c
+    display_pages()
+    paper = (input("Choose the number of the paper to be selected\n"))
+    p_title = (paper,)
+    c.executescript("select reviewer from papers p, expertise e where p.area=e.area and p.title=?\
+                     EXCEPT\
+                    select reviewer from papers p, reviews r where p.id=r.paper and p.title=?;", p_title,p_title)    
+    return
 
 def first_task():
     global conn, c
@@ -68,7 +75,6 @@ def first_task():
        for i in range(0,size_rows):
            print(rows[i][0])
 
-
     return
 
 
@@ -81,6 +87,6 @@ def main():
     global conn, c
     path = "a2.db"
     connect(path)
-    first_task()
+    second_task()
 
 main()
