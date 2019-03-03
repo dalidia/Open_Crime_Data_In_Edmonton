@@ -79,30 +79,31 @@ def second_task():
     c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
             EXCEPT select reviewer from papers p, reviews r 
             where p.id=r.paper and p.title=?;''', p_title)
-    rows = c.fetchall()
-    size_rows = len(rows)
-
-    if (size_rows == 0):
-        print("Potential reviewers not assigned")
-    else:
-       for i in range(0,size_rows):
-           print(rows[i][0])
+   
+    rows = c.fetchone()
+   
+    
+    print(rows)
+    # if (size_rows == 0):
+    #     print("Potential reviewers not assigned")
+    # else:
+    #    for i in range(0,size_rows):
+    #        print(rows[i][0])
     
     conn.commit()
     return
 
 # selects which questions to run 
 def select_options():
-    
     pass
 
 def main():
     global conn, c
     path = "a2.db"
     connect(path)
-    second_task()
+    first_task()
+   # second_task()
 
     conn.commit()
     conn.close()
-
 main()
