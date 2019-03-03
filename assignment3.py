@@ -96,7 +96,7 @@ def second_task():
 def fourth_task():
     global conn, c
 
-    query = "SELECT author, COUNT(csession) as count FROM papers GROUP BY author"
+    query = "SELECT author, COUNT(csession) as count FROM papers WHERE decision='A' GROUP BY author"
     df = pd.read_sql_query(query, conn)
     
     while(True):
