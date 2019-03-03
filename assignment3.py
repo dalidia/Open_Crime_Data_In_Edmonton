@@ -2,22 +2,15 @@ import matplotlib.pyplot as plt
 import sqlite3
 import pandas as pd
 
-conn = None
-c = None
-
 # connects database 
 def connect(path):
-    global conn, c
-
     conn = sqlite3.connect(path)
     c =conn.cursor()
     c.execute('PRAGMA foreign_keys=ON; ')
     conn.commit()
-    return
+    return conn, c
 
-def display_pages():
-    global conn, c
-
+def display_pages(conn, c):
     df = pd.read_sql_query("SELECT title FROM papers;", conn)
 
     size = len(df)
@@ -52,9 +45,8 @@ def display_pages():
     conn.commit()
     return
 
-def first_task():
-    global conn, c
-    display_pages()
+def show_current_reviewers(conn, c):
+    display_pages(conn, c)
 
     paper = (input("Choose the number of the paper to be selected\n"))
     p_title = (paper,)
@@ -72,10 +64,8 @@ def first_task():
     conn.commit()
     return
 
-def second_task():
-    global conn, c
-
-    display_pages()
+def show_potential_reviewers(conn, c):
+    display_pages(conn, c)
     paper = input("Choose the name of the paper to be selected\n")
     p_title = (paper,paper)
     c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
@@ -93,9 +83,42 @@ def second_task():
     conn.commit()
     return
 
-def fourth_task():
-    global conn, c
+def get_reviews_in_range(conn, c):
+    lb = 0
+    ub = 0
+    while True:
+        try:
+            lb = int(input("Enter a bound: "))
+            ub = int(input("Enter another bound: "))
+        except Exception as e:
+            print("\nInvalid bound. Please try again.")
+            continue
+        if lb > ub:
+            tmp = ub
+            ub = lb
+            lb = tmp
+        break
 
+    query = '''
+    select reviewer as rv
+    from 
+        (select reviewer, count(*) as C 
+        from reviews 
+        group by reviewer 
+        union 
+        select email as reviewer, 0 as C 
+        from users U 
+        where U.email not in (select reviewer from reviews)) 
+    where C >= ''' + str(lb) + " and " + " C <= " + str(ub) + ";"
+
+    reviews = pd.read_sql(query, conn)["rv"].tolist()
+    print("\nReviewers with #reviews between " + str(lb) + " and " + str(ub) + ':')
+    for r in reviews:
+        print(r)
+    conn.commit()
+    return
+
+def show_author_participation(conn, c):
     query = "SELECT author, COUNT(csession) as count FROM papers WHERE decision='A' GROUP BY author"
     df = pd.read_sql_query(query, conn)
     
@@ -134,18 +157,25 @@ def fourth_task():
     conn.commit()
     return
 
-# selects which questions to run 
-def select_options():
-    
-    pass
-
 def main():
-    global conn, c
     path = "a2.db"
-    connect(path)
-    first_task()
-    second_task()
-    #fourth_task()
+    conn, c = connect(path)
+
+    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation]
+    fn_select = "\nInput a number to select a function, or q to quit:"
+    while True:
+        print(fn_select)
+        for i in range(0, len(functions)):
+            print(str(i) + ': ' + functions[i].__name__)
+        input_str = input("\n> ")
+        if input_str == 'q':
+            break
+        else:
+            try:
+                functions[int(input_str)](conn, c)
+            except Exception as e:
+                print("\nInvalid input, please try again.")
+                continue
 
     conn.commit()
     conn.close()
