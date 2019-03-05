@@ -157,11 +157,34 @@ def show_author_participation(conn, c):
     conn.commit()
     return
 
+def most_popular_areas(conn, c):
+    query = '''
+    select area, count(*) as C 
+    from papers 
+    group by area
+    union 
+    select name as area, 0 as C 
+    from areas A 
+    where A.name not in (select area from papers)
+    order by C desc;'''
+
+    df = pd.read_sql(query, conn)
+    areas = df["area"].tolist()[:5]
+    counts = df["C"].tolist()[:5]
+    #print(areas)
+    #print(counts)
+    print("Generating piechart of the 5 most popular areas:")
+    plt.pie(counts, labels=areas, autopct="%1.1f%%")
+    plt.title("Most Popular Areas")
+    plt.show()
+    conn.commit()
+    return
+
 def main():
     path = "a2.db"
     conn, c = connect(path)
 
-    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation]
+    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas]
     fn_select = "\nInput a number to select a function, or q to quit:"
     while True:
         print(fn_select)
@@ -172,11 +195,11 @@ def main():
             break
         else:
             try:
-                functions[int(input_str)](conn, c)
+                fn = functions[int(input_str)]
             except Exception as e:
                 print("\nInvalid input, please try again.")
                 continue
-
+            fn(conn, c)
     conn.commit()
     conn.close()
 
