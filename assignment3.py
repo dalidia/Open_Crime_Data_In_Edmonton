@@ -169,8 +169,22 @@ def most_popular_areas(conn, c):
     order by C desc;'''
 
     df = pd.read_sql(query, conn)
-    areas = df["area"].tolist()[:5]
-    counts = df["C"].tolist()[:5]
+    areas = df["area"].tolist()
+    counts = df["C"].tolist()
+
+    # Finds the 5 most popular areas as well as any other areas with the same popularity as areas in the top 5.
+    i = 0
+    j = 0
+    prev = None
+    while i < 5 and j < len(counts):
+        if counts[j] != prev:
+            prev = counts[j]
+            i += 1
+        j += 1
+
+    areas = areas[:j]
+    counts = counts[:j]
+        
     #print(areas)
     #print(counts)
     print("Generating piechart of the 5 most popular areas:")
@@ -181,8 +195,13 @@ def most_popular_areas(conn, c):
     return
 
 def main():
-    path = "a2.db"
-    conn, c = connect(path)
+    while True:
+        try:
+    	    conn, c = connect(input("Enter the name of the database: "))
+        except:
+            print("Incorrect input. Please try again.")
+            continue
+        break
 
     functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas]
     fn_select = "\nInput a number to select a function, or q to quit:"
