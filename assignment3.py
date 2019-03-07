@@ -11,6 +11,7 @@ def connect(path):
     conn.commit()
     return conn, c
 
+# display all papers in pages with each displayed page having 5 papers
 def display_pages(conn, c):
     df = pd.read_sql_query("SELECT title FROM papers;", conn)
 
@@ -21,8 +22,10 @@ def display_pages(conn, c):
     selection =''
 
     # Show all papers
-    while (selection != 'E'):
-        selection = input("Select 'N' for next page, 'P' for previous or 'E' to exit\n")
+    while (True):
+        print("\nSelect 'n' for next page, 'p' for previous or 'q' to quit")
+        selection = input(">")
+        # go to next page
         if selection.upper() == 'N':
             if (last_page) >= size:
                 print("Page does not exist. Try again.")
@@ -31,7 +34,7 @@ def display_pages(conn, c):
                 first_page = last_page
                 last_page += 6
                 print(df.iloc[first_page:last_page])
-            
+        # go to previous page
         elif selection.upper() == 'P':
             if (first_page) <= 0:
                 print("Page does not exist. Try again.")
@@ -40,8 +43,11 @@ def display_pages(conn, c):
                 first_page -=5
                 last_page -=6
                 print(df.iloc[first_page:last_page])
+        # quit
+        elif selection.upper() == "Q":
+            break
         else:
-            selection = "E"
+            print("Invalid input. Try again.")
     
     conn.commit()
     return
@@ -49,13 +55,14 @@ def display_pages(conn, c):
 def show_current_reviewers(conn, c):
     display_pages(conn, c)
 
-    paper = (input("Choose the number of the paper to be selected\n"))
+    paper = input("Choose the number of the paper to be selected\n")
     p_title = (paper,)
     # allow one paper to be selected
     c.execute("select reviewer from papers p, reviews r where p.id=r.paper and p.title=?;",p_title)
     rows = c.fetchall()
     size_rows = len(rows)
 
+    # if 
     if (size_rows == 0):
         print("Reviewer not assigned")
     else:
@@ -67,13 +74,14 @@ def show_current_reviewers(conn, c):
 
 def show_potential_reviewers(conn, c):
     display_pages(conn, c)
-    paper = input("Choose the name of the paper to be selected\n")
+    print("\nChoose the name of the paper to be selected\n")
+    paper = input(">")
     p_title = (paper,paper)
     c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
             EXCEPT select reviewer from papers p, reviews r 
             where p.id=r.paper and p.title=?;''', p_title)
    
-    rows = c.fetchone()
+    rows = c.fetchall()
     size_rows = len(rows)
     
     if (size_rows == 0):
