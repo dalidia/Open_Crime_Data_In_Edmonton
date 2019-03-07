@@ -82,6 +82,12 @@ def show_potential_reviewers(conn, c):
        for i in range(0,size_rows):
            print(rows[i][0])
     
+    reviewer = input("Choose a reviewer")
+    orig, imp, sound = input("\nInput scores for originality, importance and soundness: ").split()
+    c.execute('''UPDATE reviews
+            SET originality = ?, importance = ?, soundness = ?
+            WHERE reviewer = ?''', orig, imp, sound, reviewer)
+
     conn.commit()
     return
 
@@ -159,27 +165,53 @@ def show_author_participation(conn, c):
     conn.commit()
     return
 
-def show_avg_review_scores(conn,c):
-    query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
-			    AVG(SOUNDNESS) as soundness
-                FROM reviews r, papers p
-                WHERE  r.paper = p.id
-                GROUP BY reviewer '''
-    df = pd.read_sql_query(query, conn)
-    index = ['Anakin', 'C3P0','Darth','Donald','Mickey','Minnie','Pluto','R2D2','Tom']
-    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
-    df2.plot.bar()
-    plt.plot()
+def most_popular_areas(conn, c):
+    query = '''
+    select area, count(*) as C 
+    from papers 
+    group by area
+    union 
+    select name as area, 0 as C 
+    from areas A 
+    where A.name not in (select area from papers)
+    order by C desc;'''
+
+    df = pd.read_sql(query, conn)
+    areas = df["area"].tolist()
+    counts = df["C"].tolist()
+
+    # Finds the 5 most popular areas as well as any other areas with the same popularity as areas in the top 5.
+    i = 0
+    j = 0
+    prev = None
+    while i < 5 and j < len(counts):
+        if counts[j] != prev:
+            prev = counts[j]
+            i += 1
+        j += 1
+
+    areas = areas[:j]
+    counts = counts[:j]
+        
+    #print(areas)
+    #print(counts)
+    print("Generating piechart of the 5 most popular areas:")
+    plt.pie(counts, labels=areas, autopct="%1.1f%%")
+    plt.title("Most Popular Areas")
     plt.show()
- 
     conn.commit()
-    return 
+    return
 
 def main():
-    path = "a2.db"
-    conn, c = connect(path)
+    while True:
+        try:
+    	    conn, c = connect(input("Enter the name of the database: "))
+        except:
+            print("Incorrect input. Please try again.")
+            continue
+        break
 
-    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, show_avg_review_scores]
+    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas]
     fn_select = "\nInput a number to select a function, or q to quit:"
     while True:
         print(fn_select)
@@ -190,11 +222,11 @@ def main():
             break
         else:
             try:
-                functions[int(input_str)](conn, c)
+                fn = functions[int(input_str)]
             except Exception as e:
                 print("\nInvalid input, please try again.")
                 continue
-
+            fn(conn, c)
     conn.commit()
     conn.close()
 
