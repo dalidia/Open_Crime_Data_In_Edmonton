@@ -221,21 +221,24 @@ def show_author_participation(conn, c):
         plt.show()
     else:
         print(df.iloc[:,0:1])
-        print("\nProvide the index of the author")
+        print("\nProvide the index of the author, or press 'q'.")
         
         # check if author is one of the authors who participate
         while True:
             try:
-                author_ind = int(input(">"))
-                if (list(df.iloc[author_ind])[0] not in df.author.to_string(index=False)):
+                author_ind = input(">")
+                if author_ind.upper() == "Q":
+                    break
+                elif (list(df.iloc[int(author_ind)])[0] not in df.author.to_string(index=False)):
                     print("Author could not be found. Invalid author. Try again")
                 else:
-                    break
+                    author_to_be = list(df.iloc[author_ind])
+                    print("The number is ", author_to_be[1])
             except:
                 print("Invalid input. Try again.\n")
+                continue
         
-        author_to_be = list(df.iloc[author_ind])
-        print("The number is ", author_to_be[1])
+        
 
     conn.commit()
     return
