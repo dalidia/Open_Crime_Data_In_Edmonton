@@ -53,16 +53,18 @@ def display_pages(conn, c):
 # get valid input and returns the index of a paper and
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
-    print("\nChoose the index of the paper to be selected")
+    print("\nChoose the index of the paper to be selected, or press 'q' to quit.")
     
     # find the number of papers 
     c.execute('''SELECT COUNT(id) FROM papers''')
     paper_range = c.fetchone()
     paper_range = paper_range[0]
     while True:
-        
         try:
-            paper_ind = int(input(">"))
+            paper_ind = input(">")
+            if paper_ind.upper() == "Q":
+                break
+            paper_ind = int(paper_ind)
             if paper_ind < paper_range and paper_ind >= 0:
                 break
             else: 
