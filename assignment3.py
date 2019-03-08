@@ -50,7 +50,7 @@ def display_pages(conn, c):
     conn.commit()
     return df
 
-# get valid input and returns the index of a paper
+# get valid input and returns the index of a paper and the table
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
@@ -88,6 +88,7 @@ def show_current_reviewers(conn, c):
     return
 
 def show_potential_reviewers(conn, c):
+    # display pages
     df, paper_ind = get_valid_input(conn, c)
     title_to_be = list(df.iloc[paper_ind])
     p_title = (title_to_be[0],title_to_be[0])
@@ -169,8 +170,8 @@ def get_reviews_in_range(conn, c):
 def show_author_participation(conn, c):
     query = "SELECT author, COUNT(csession) as count FROM papers WHERE decision='A' GROUP BY author"
     df = pd.read_sql_query(query, conn)
-    
-    while(True):
+    # select valid option
+    while True:
         option = input('''Select 1 if you want see a barplot of all individual authors and how many sessions they participate in, or 2 if you want to be provided with a number for a selected individual\n''')
         if option == '1' or option == '2':
             break
@@ -182,26 +183,23 @@ def show_author_participation(conn, c):
         plt.plot()
         plt.show()
     else:
-        c.execute(query)
-        rows = c.fetchall()
-        size = len(rows)
+        print(df.iloc[:,0:1])
 
-        # check if rows is empty SHOULD I PUT THIS???
-        if size == 0:
-            print("There's no input")
-
-        print("Provide the author\n")
-        author = input(">")
+        print("\nProvide the index of the author")
         
-        found = False
-        # look for author
-        for i in range(0,size):
-            if rows[i][0] == author:
-                print(rows[i][1])
-                found = True
+        # check if author is one of the authors who participate
+        while True:
+            try:
+                author_ind = int(input(">"))
+                if (list(df.iloc[author_ind])[0] not in df.author.to_string(index=False)):
+                    print("Author could not be found. Invalid author. Try again")
+                else:
+                    break
+            except:
+                print("Invalid input. Try again.\n")
         
-        if(not found):
-            print("Author could not be found. Invalid author.")
+        author_to_be = list(df.iloc[author_ind])
+        print("The number is ", author_to_be[1])
 
     conn.commit()
     return
@@ -271,7 +269,7 @@ def main():
             continue
         break
 
-    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas,show_avg_review_scores]
+    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas, show_avg_review_scores]
     fn_select = "\nInput a number to select a function, or q to quit:"
     while True:
         print(fn_select)
