@@ -146,22 +146,26 @@ def show_potential_reviewers(conn, c):
     conn.commit()
     return
 
+# Finds the reviewers within a certain range [lower, upper]
 def get_reviews_in_range(conn, c):
     lb = 0
     ub = 0
     while True:
+        # Make sure the input is correct and in integer form.
         try:
             lb = int(input("Enter a bound: "))
             ub = int(input("Enter another bound: "))
         except Exception as e:
             print("\nInvalid bound. Please try again.")
             continue
+        # Swap bounds if they were entered in backwards order.
         if lb > ub:
             tmp = ub
             ub = lb
             lb = tmp
         break
 
+    # Select all reviewers in the given range, including users who have reviewed no papers if 0 is in the range.
     query = '''
     select reviewer as rv
     from 
@@ -174,6 +178,7 @@ def get_reviews_in_range(conn, c):
         where U.email not in (select reviewer from reviews)) 
     where C >= ''' + str(lb) + " and " + " C <= " + str(ub) + ";"
 
+    # Execute the query, make it into a list, then output the reviewers.
     reviews = pd.read_sql(query, conn)["rv"].tolist()
     print("\nReviewers with #reviews between " + str(lb) + " and " + str(ub) + ':')
     for r in reviews:
@@ -222,15 +227,13 @@ def show_author_participation(conn, c):
     conn.commit()
     return
 
+# Find the 5 most popular areas including ties.
 def most_popular_areas(conn, c):
+    # Get the number of papers in each area, ignoring areas with no papers.
     query = '''
     select area, count(*) as C 
     from papers 
     group by area
-    union 
-    select name as area, 0 as C 
-    from areas A 
-    where A.name not in (select area from papers)
     order by C desc;'''
 
     df = pd.read_sql(query, conn)
@@ -253,7 +256,7 @@ def most_popular_areas(conn, c):
     # print(areas)
     #print(counts)
     print("Generating piechart of the 5 most popular areas:")
-    plt.pie(counts, labels=areas, autopct="%1.1f%%")
+    plt.pie(counts, labels=areas)
     plt.title("Most Popular Areas")
     plt.show()
     conn.commit()
@@ -277,6 +280,7 @@ def show_avg_review_scores(conn,c):
     return 
 
 def main():
+    # Ask for the database to be input.
     while True:
         try:
     	    conn, c = connect(input("Enter the name of the database: "))
@@ -287,6 +291,7 @@ def main():
 
     functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas, show_avg_review_scores]
     fn_select = "\nInput a number to select a function, or q to quit:"
+    # Main interface loop, get integer/character input and map to function or quit.
     while True:
         print(fn_select)
         for i in range(0, len(functions)):
