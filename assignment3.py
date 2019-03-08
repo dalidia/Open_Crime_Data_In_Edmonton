@@ -99,11 +99,20 @@ def show_potential_reviewers(conn, c):
         # if empty
         print("Potential reviewers not assigned")
     
-    reviewer = input("Choose a reviewer")
-    orig, imp, sound = input("\nInput scores for originality, importance and soundness: ").split()
-    c.execute('''UPDATE reviews
-            SET originality = ?, importance = ?, soundness = ?
-            WHERE reviewer = ?''', orig, imp, sound, reviewer)
+    paper_to_review =(paper,)
+    c.execute("SELECT id FROM papers WHERE title = ?;",paper_to_review)
+    paper_id = c.fetchone()
+    choose_reviewer = input("Choose a reviewer:  ")
+    reviewer = (choose_reviewer,)
+    c.execute("SELECT email FROM users WHERE email = ?;",reviewer)
+    rev_name = c.fetchone()
+    print("\nInput scores: \n")
+    orig = int(input("originality:  \n"))
+    imp  = int(input("importance:  \n"))
+    sound = int(input("soundness:  \n"))
+    overall = (orig+imp+sound)/3
+    test = [paper_id,rev_name,orig,imp,sound,overall]
+    c.execute("INSERT INTO reviews VALUES (?,?,?,?,?,?);",test)
 
     conn.commit()
     return
@@ -211,7 +220,7 @@ def most_popular_areas(conn, c):
     areas = areas[:j]
     counts = counts[:j]
         
-    #print(areas)
+    # print(areas)
     #print(counts)
     print("Generating piechart of the 5 most popular areas:")
     plt.pie(counts, labels=areas, autopct="%1.1f%%")
@@ -221,13 +230,16 @@ def most_popular_areas(conn, c):
     return
 
 def show_avg_review_scores(conn,c):
+
+    
     query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
 			    AVG(SOUNDNESS) as soundness
                 FROM reviews r, papers p
                 WHERE  r.paper = p.id
                 GROUP BY reviewer '''
     df = pd.read_sql_query(query, conn)
-    index = ['Anakin', 'C3P0','Darth','Donald','Mickey','Minnie','Pluto','R2D2','Tom']
+    
+    
     df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
     df2.plot.bar()
     plt.plot()
@@ -235,7 +247,7 @@ def show_avg_review_scores(conn,c):
  
     conn.commit()
     return 
-    
+
 def main():
     while True:
         try:
@@ -245,7 +257,7 @@ def main():
             continue
         break
 
-    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas]
+    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas,show_avg_review_scores]
     fn_select = "\nInput a number to select a function, or q to quit:"
     while True:
         print(fn_select)
