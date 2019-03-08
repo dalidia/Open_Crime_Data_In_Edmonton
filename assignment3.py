@@ -60,6 +60,7 @@ def get_valid_input(conn,c):
     paper_range = c.fetchone()
     paper_range = paper_range[0]
     while True:
+        
         try:
             paper_ind = int(input(">"))
             if paper_ind < paper_range and paper_ind >= 0:
