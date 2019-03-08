@@ -220,6 +220,22 @@ def most_popular_areas(conn, c):
     conn.commit()
     return
 
+def show_avg_review_scores(conn,c):
+    query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
+			    AVG(SOUNDNESS) as soundness
+                FROM reviews r, papers p
+                WHERE  r.paper = p.id
+                GROUP BY reviewer '''
+    df = pd.read_sql_query(query, conn)
+    index = ['Anakin', 'C3P0','Darth','Donald','Mickey','Minnie','Pluto','R2D2','Tom']
+    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
+    df2.plot.bar()
+    plt.plot()
+    plt.show()
+ 
+    conn.commit()
+    return 
+    
 def main():
     while True:
         try:
