@@ -117,7 +117,7 @@ def show_potential_reviewers(conn, c):
     paper_id = c.fetchone()
     insertions = (paper_id,reviewer,orig,imp,sound,overall)
     c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
-
+    print("hi")
     conn.commit()
     return
 
