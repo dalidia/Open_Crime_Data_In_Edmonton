@@ -97,7 +97,7 @@ def show_potential_reviewers(conn, c):
    
     rows = c.fetchall()
     size_rows = len(rows)
-    
+
     try:
         # display the email of all reviewers that have reviewed the paper
         for i in range(0,size_rows):
@@ -106,7 +106,16 @@ def show_potential_reviewers(conn, c):
         # if empty
         print("Potential reviewers not assigned")
     
-    reviewer = input("Choose a reviewer")
+    while (True):
+        reviewer = input("Choose a reviewer or press 'Q' to exit : ")
+        if reviewer not in rows and reviewer.upper() != "Q":
+            print("\nNot allowed to review this paper. \n")
+        elif  reviewer.upper() == "Q":
+            print("hey")
+            return
+        else:
+            break
+
     print("\nInput scores:")
     orig = int(input("originality:  \n"))
     imp  = int(input("importance:  \n"))
@@ -118,7 +127,7 @@ def show_potential_reviewers(conn, c):
     paper_id = paper_id[0]
     insertions = (paper_id,reviewer,orig,imp,sound,overall)
     c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
-    print("hi")
+        
     conn.commit()
     return
 
