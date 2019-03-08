@@ -50,11 +50,11 @@ def display_pages(conn, c):
     conn.commit()
     return df
 
+# get valid input and returns the index of a paper
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
 
-    # get valid input
     while True:
         try:
             paper_ind = int(input(">"))
@@ -108,9 +108,8 @@ def show_potential_reviewers(conn, c):
     
     reviewer = input("Choose a reviewer")
     orig, imp, sound = input("\nInput scores for originality, importance and soundness: ").split()
-    c.execute('''UPDATE reviews
-            SET originality = ?, importance = ?, soundness = ?
-            WHERE reviewer = ?''', orig, imp, sound, reviewer)
+    insertions = (title_to_be[0],reviewer,orig,imp,sound)
+    c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
 
     conn.commit()
     return
