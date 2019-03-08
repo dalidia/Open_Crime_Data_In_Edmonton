@@ -106,27 +106,17 @@ def show_potential_reviewers(conn, c):
         # if empty
         print("Potential reviewers not assigned")
     
-<<<<<<< HEAD
-    paper_to_review =(paper,)
-    c.execute("SELECT id FROM papers WHERE title = ?;",paper_to_review)
-    paper_id = c.fetchone()
-    choose_reviewer = input("Choose a reviewer:  ")
-    reviewer = (choose_reviewer,)
-    c.execute("SELECT email FROM users WHERE email = ?;",reviewer)
-    rev_name = c.fetchone()
+    reviewer = input("Choose a reviewer")
     print("\nInput scores: \n")
     orig = int(input("originality:  \n"))
     imp  = int(input("importance:  \n"))
     sound = int(input("soundness:  \n"))
     overall = (orig+imp+sound)/3
-    test = [paper_id,rev_name,orig,imp,sound,overall]
-    c.execute("INSERT INTO reviews VALUES (?,?,?,?,?,?);",test)
-=======
-    reviewer = input("Choose a reviewer")
-    orig, imp, sound = input("\nInput scores for originality, importance and soundness: ").split()
-    insertions = (title_to_be[0],reviewer,orig,imp,sound)
+    paper_to = (paper_ind,)
+    c.execute("SELECT Id FROM papers WHERE title=?",paper_to)
+    paper_id = c.fetchone()
+    insertions = (paper_id,reviewer,orig,imp,sound,overall)
     c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
->>>>>>> f8ab47a2e82890494a9903bfa2861fd6d8a25b0b
 
     conn.commit()
     return
