@@ -50,10 +50,11 @@ def display_pages(conn, c):
     conn.commit()
     return df
 
-# show all papers 
-def show_current_reviewers(conn, c):
+def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
+
+    # get valid input
     while True:
         try:
             paper_ind = int(input(">"))
@@ -61,6 +62,12 @@ def show_current_reviewers(conn, c):
         except Exception as e:
             print("Invalid input. Please, try again")
             continue
+    
+    return df, paper_ind
+
+# show all papers 
+def show_current_reviewers(conn, c):
+    df, paper_ind = get_valid_input(conn,c)
     
     title_to_be = list(df.iloc[paper_ind])
     p_title= (title_to_be[0],)
@@ -81,17 +88,7 @@ def show_current_reviewers(conn, c):
     return
 
 def show_potential_reviewers(conn, c):
-    df =display_pages(conn, c)
-    print("\nChoose the index of the paper to be selected")
-    
-    while True:
-        try:
-            paper_ind = int(input(">"))
-            break
-        except Exception as e:
-            print("Invalid input. Try again.\n")
-            continue
-
+    df, paper_ind = get_valid_input(conn, c)
     title_to_be = list(df.iloc[paper_ind])
     p_title = (title_to_be[0],title_to_be[0])
     c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
