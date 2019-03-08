@@ -14,12 +14,10 @@ def connect(path):
 # display all papers in pages with each displayed page having 5 papers
 def display_pages(conn, c):
     df = pd.read_sql_query("SELECT title FROM papers;", conn)
-
     size = len(df)
     first_page = 0
     last_page = 5
     print(df.iloc[:last_page,0:1])
-    selection =''
 
     # Show all papers until indicate it to quit
     while (True):
@@ -50,17 +48,20 @@ def display_pages(conn, c):
     conn.commit()
     return df
 
-# get valid input and returns the index of a paper and
+# get valid input of the index of the paper and returns the index of a paper and
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
 
     while True:
+        paper_ind = input(">")
+        if (paper_ind.upper() == 'Q'):
+            break
         try:
-            paper_ind = int(input(">"))
+            paper_ind = int(paper_ind)
             break
         except Exception as e:
-            print("Invalid input. Please, try again")
+            print("Invalid input. Please, try again or press 'q' to quit.\n")
             continue
     
     return df, paper_ind
@@ -200,18 +201,22 @@ def show_author_participation(conn, c):
         print(df.iloc[:,0:1])
         print("\nProvide the index of the author")
         
+        author_ind =''
         # check if author is one of the authors who participate
         while True:
+            author_ind = input(">")
             try:
-                author_ind = int(input(">"))
-                if (list(df.iloc[author_ind])[0] not in df.author.to_string(index=False)):
-                    print("Author could not be found. Invalid author. Try again")
+                if (list(df.iloc[int(author_ind)])[0] not in df.author.to_string(index=False)):
+                    print("Author could not be found. Invalid author. Try again or press 'q' to quit")
+                elif author_ind.upper() == 'Q':
+                    break
                 else:
                     break
             except:
                 print("Invalid input. Try again.\n")
+                continue
         
-        author_to_be = list(df.iloc[author_ind])
+        author_to_be = list(df.iloc[int(author_ind)])
         print("The number is ", author_to_be[1])
 
     conn.commit()
