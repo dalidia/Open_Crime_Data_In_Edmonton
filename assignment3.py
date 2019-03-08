@@ -60,14 +60,15 @@ def show_current_reviewers(conn, c):
             break
         except Exception as e:
             print("Invalid input. Please, try again")
-    a = list(df.iloc[paper_ind])
-    p_title= (a[0],)
+            continue
+    
+    title_to_be = list(df.iloc[paper_ind])
+    p_title= (title_to_be[0],)
     # allow one paper to be selected
     c.execute("select reviewer from papers p, reviews r where p.id=r.paper and p.title=?;",p_title)
     rows = c.fetchall()
     size_rows = len(rows)
 
-    print(p_title)
     try:
         # display the email of all reviewers that have reviewed the paper
         for i in range(0,size_rows):
@@ -80,10 +81,19 @@ def show_current_reviewers(conn, c):
     return
 
 def show_potential_reviewers(conn, c):
-    display_pages(conn, c)
+    df =display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
-    paper = input(">")
-    p_title = (paper,paper)
+    
+    while True:
+        try:
+            paper_ind = int(input(">"))
+            break
+        except Exception as e:
+            print("Invalid input. Try again.\n")
+            continue
+
+    title_to_be = list(df.iloc[paper_ind])
+    p_title = (title_to_be[0],title_to_be[0])
     c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
             EXCEPT select reviewer from papers p, reviews r 
             where p.id=r.paper and p.title=?;''', p_title)
