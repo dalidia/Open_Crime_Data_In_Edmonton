@@ -14,10 +14,12 @@ def connect(path):
 # display all papers in pages with each displayed page having 5 papers
 def display_pages(conn, c):
     df = pd.read_sql_query("SELECT title FROM papers;", conn)
+
     size = len(df)
     first_page = 0
     last_page = 5
     print(df.iloc[:last_page,0:1])
+    selection =''
 
     # Show all papers until indicate it to quit
     while (True):
@@ -48,20 +50,25 @@ def display_pages(conn, c):
     conn.commit()
     return df
 
-# get valid input of the index of the paper and returns the index of a paper and
+# get valid input and returns the index of a paper and
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
-
+    
+    # find the number of papers 
+    c.execute('''SELECT COUNT(id) FROM papers''')
+    paper_range = c.fetchone()
+    paper_range = paper_range[0]
     while True:
-        paper_ind = input(">")
-        if (paper_ind.upper() == 'Q'):
-            break
+        
         try:
-            paper_ind = int(paper_ind)
-            break
+            paper_ind = int(input(">"))
+            if paper_ind < paper_range and paper_ind >= 0:
+                break
+            else: 
+                print("Out of range. Please, try again")
         except Exception as e:
-            print("Invalid input. Please, try again or press 'q' to quit.\n")
+            print("Invalid input. Please, try again")
             continue
     
     return df, paper_ind
@@ -123,6 +130,9 @@ def show_potential_reviewers(conn, c):
     author = c.fetchone()
     author = author[0]
     
+    # ask for the email of reviewer and check if it is valid
+    # this loop continues unless either the user inputs a valid value or
+    # or presses 'q' 
     while (True):
         reviewer = input("Choose a reviewer or press 'Q' to exit : ")
         if reviewer == author:
@@ -130,46 +140,48 @@ def show_potential_reviewers(conn, c):
         elif reviewer not in rows and reviewer.upper() != "Q":
             print("\nNot allowed to review this paper. \n")
         elif  reviewer.upper() == "Q":
-            print("hey")
             return
         else:
             break
 
+    # take in the values for scores in each category
     print("\nInput scores:")
-    orig = int(input("originality:  \n"))
-    imp  = int(input("importance:  \n"))
-    sound = int(input("soundness:  \n"))
+    orig = int(input("originality:  "))
+    imp  = int(input("\nimportance:  "))
+    sound = int(input("\nsoundness:  "))
+
+    # calclulate the overall score
     overall = (orig+imp+sound)/3
     paper_to = (title_to_be[0],)
+
+    # find the unique paper id corresponding to the title of the chosen paper
     c.execute("SELECT Id FROM papers WHERE title=?",paper_to)
     paper_id = c.fetchone()
     paper_id = paper_id[0]
     insertions = (paper_id,reviewer,orig,imp,sound,overall)
+
+    # insert the new entry into the datbase in table reviews
     c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
         
     conn.commit()
     return
 
-# Finds the reviewers within a certain range [lower, upper]
 def get_reviews_in_range(conn, c):
     lb = 0
     ub = 0
     while True:
-        # Make sure the input is correct and in integer form.
         try:
             lb = int(input("Enter a bound: "))
             ub = int(input("Enter another bound: "))
         except Exception as e:
             print("\nInvalid bound. Please try again.")
             continue
-        # Swap bounds if they were entered in backwards order.
         if lb > ub:
             tmp = ub
             ub = lb
             lb = tmp
         break
 
-    # Select all reviewers in the given range, including users who have reviewed no papers if 0 is in the range.
     query = '''
     select reviewer as rv
     from 
@@ -182,7 +194,6 @@ def get_reviews_in_range(conn, c):
         where U.email not in (select reviewer from reviews)) 
     where C >= ''' + str(lb) + " and " + " C <= " + str(ub) + ";"
 
-    # Execute the query, make it into a list, then output the reviewers.
     reviews = pd.read_sql(query, conn)["rv"].tolist()
     print("\nReviewers with #reviews between " + str(lb) + " and " + str(ub) + ':')
     for r in reviews:
@@ -208,35 +219,34 @@ def show_author_participation(conn, c):
         plt.show()
     else:
         print(df.iloc[:,0:1])
-        print("\nProvide the index of the author, or press 'q' to exit.\n")
+        print("\nProvide the index of the author")
         
         # check if author is one of the authors who participate
         while True:
-            author_ind = input(">")
             try:
-                if author_ind.upper() == "Q":
-                    return
-                elif (list(df.iloc[int(author_ind)])[0] not in df.author.to_string(index=False)):
-                    print("Author could not be found. Invalid author. Try again or press 'q' to quit\n")
+                author_ind = int(input(">"))
+                if (list(df.iloc[author_ind])[0] not in df.author.to_string(index=False)):
+                    print("Author could not be found. Invalid author. Try again")
                 else:
                     break
-            except Exception as e:
-                print("Invalid input. Try again or press 'q' to quit.\n")
-                continue
+            except:
+                print("Invalid input. Try again.\n")
         
-        author_to_be = list(df.iloc[int(author_ind)])
+        author_to_be = list(df.iloc[author_ind])
         print("The number is ", author_to_be[1])
 
     conn.commit()
     return
 
-# Find the 5 most popular areas including ties.
 def most_popular_areas(conn, c):
-    # Get the number of papers in each area, ignoring areas with no papers.
     query = '''
     select area, count(*) as C 
     from papers 
     group by area
+    union 
+    select name as area, 0 as C 
+    from areas A 
+    where A.name not in (select area from papers)
     order by C desc;'''
 
     df = pd.read_sql(query, conn)
@@ -259,22 +269,30 @@ def most_popular_areas(conn, c):
     # print(areas)
     #print(counts)
     print("Generating piechart of the 5 most popular areas:")
-    plt.pie(counts, labels=areas)
+    plt.pie(counts, labels=areas, autopct="%1.1f%%")
     plt.title("Most Popular Areas")
     plt.show()
     conn.commit()
     return
 
-def show_avg_review_scores(conn,c):    
-    query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
+def show_avg_review_scores(conn,c):
+    # find the average review scores for each category for each reviwer 
+    query = ''' SELECT reviewer, 
+                AVG(ORIGINALITY)as originality, 
+                AVG(IMPORTANCE) as importance,
 			    AVG(SOUNDNESS) as soundness
                 FROM reviews r, papers p
                 WHERE  r.paper = p.id
                 GROUP BY reviewer '''
+
     df = pd.read_sql_query(query, conn)
-    
-    
-    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
+    reviewers = list(df.reviewer.to_string(index = 'False'))
+
+    # plot a grouped bar chart
+    df2 = pd.DataFrame(df,index = reviewers, columns=['originality', 'importance', 'soundness']) 
+    # index =["Anakin@Email","C3P0@Email","Darth@Email",
+    # "Donald@Email","Mickey@Email","Minnie@Email","Pluto@Email",
+    # "R2D2@Email","Tom@Email"]
     df2.plot.bar()
     plt.plot()
     plt.show()
@@ -283,7 +301,6 @@ def show_avg_review_scores(conn,c):
     return 
 
 def main():
-    # Ask for the database to be input.
     while True:
         try:
     	    conn, c = connect(input("Enter the name of the database: "))
@@ -294,7 +311,6 @@ def main():
 
     functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas, show_avg_review_scores]
     fn_select = "\nInput a number to select a function, or q to quit:"
-    # Main interface loop, get integer/character input and map to function or quit.
     while True:
         print(fn_select)
         for i in range(0, len(functions)):
