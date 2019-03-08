@@ -50,7 +50,7 @@ def display_pages(conn, c):
     conn.commit()
     return df
 
-# get valid input and returns the index of a paper and the table
+# get valid input and returns the index of a paper and
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
