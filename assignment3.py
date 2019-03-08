@@ -54,11 +54,18 @@ def display_pages(conn, c):
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
-
+    
+    # find the number of papers 
+    c.execute('''SELECT COUNT(id) FROM papers''')
+    paper_range = c.fetchone()
+    paper_range = paper_range[0]
     while True:
         try:
             paper_ind = int(input(">"))
-            break
+            if paper_ind < paper_range and paper_ind >= 0:
+                break
+            else: 
+                print("Out of range. Please, try again")
         except Exception as e:
             print("Invalid input. Please, try again")
             continue
@@ -118,6 +125,9 @@ def show_potential_reviewers(conn, c):
     author = c.fetchone()
     author = author[0]
     
+    # ask for the email of reviewer and check if it is valid
+    # this loop continues unless either the user inputs a valid value or
+    # or presses 'q' 
     while (True):
         reviewer = input("Choose a reviewer or press 'Q' to exit : ")
         if reviewer == author:
@@ -125,21 +135,27 @@ def show_potential_reviewers(conn, c):
         elif reviewer not in rows and reviewer.upper() != "Q":
             print("\nNot allowed to review this paper. \n")
         elif  reviewer.upper() == "Q":
-            print("hey")
             return
         else:
             break
 
+    # take in the values for scores in each category
     print("\nInput scores:")
-    orig = int(input("originality:  \n"))
-    imp  = int(input("importance:  \n"))
-    sound = int(input("soundness:  \n"))
+    orig = int(input("originality:  "))
+    imp  = int(input("\nimportance:  "))
+    sound = int(input("\nsoundness:  "))
+
+    # calclulate the overall score
     overall = (orig+imp+sound)/3
     paper_to = (title_to_be[0],)
+
+    # find the unique paper id corresponding to the title of the chosen paper
     c.execute("SELECT Id FROM papers WHERE title=?",paper_to)
     paper_id = c.fetchone()
     paper_id = paper_id[0]
     insertions = (paper_id,reviewer,orig,imp,sound,overall)
+
+    # insert the new entry into the datbase in table reviews
     c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
         
     conn.commit()
@@ -254,16 +270,24 @@ def most_popular_areas(conn, c):
     conn.commit()
     return
 
-def show_avg_review_scores(conn,c):    
-    query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
+def show_avg_review_scores(conn,c):
+    # find the average review scores for each category for each reviwer 
+    query = ''' SELECT reviewer, 
+                AVG(ORIGINALITY)as originality, 
+                AVG(IMPORTANCE) as importance,
 			    AVG(SOUNDNESS) as soundness
                 FROM reviews r, papers p
                 WHERE  r.paper = p.id
                 GROUP BY reviewer '''
+
     df = pd.read_sql_query(query, conn)
-    
-    
-    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
+    reviewers = list(df.reviewer.to_string(index = 'False'))
+
+    # plot a grouped bar chart
+    df2 = pd.DataFrame(df,index = reviewers, columns=['originality', 'importance', 'soundness']) 
+    # index =["Anakin@Email","C3P0@Email","Darth@Email",
+    # "Donald@Email","Mickey@Email","Minnie@Email","Pluto@Email",
+    # "R2D2@Email","Tom@Email"]
     df2.plot.bar()
     plt.plot()
     plt.show()
