@@ -180,6 +180,7 @@ def get_reviews_in_range(conn, c):
     conn.commit()
     return
 
+# show in how many sessions do authors participate in being able to choose 2 options
 def show_author_participation(conn, c):
     query = "SELECT author, COUNT(csession) as count FROM papers WHERE decision='A' GROUP BY author"
     df = pd.read_sql_query(query, conn)
@@ -197,7 +198,6 @@ def show_author_participation(conn, c):
         plt.show()
     else:
         print(df.iloc[:,0:1])
-
         print("\nProvide the index of the author")
         
         # check if author is one of the authors who participate
@@ -254,8 +254,7 @@ def most_popular_areas(conn, c):
     conn.commit()
     return
 
-def show_avg_review_scores(conn,c):
-    
+def show_avg_review_scores(conn,c):    
     query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
 			    AVG(SOUNDNESS) as soundness
                 FROM reviews r, papers p
