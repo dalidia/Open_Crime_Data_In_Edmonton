@@ -107,14 +107,15 @@ def show_potential_reviewers(conn, c):
         print("Potential reviewers not assigned")
     
     reviewer = input("Choose a reviewer")
-    print("\nInput scores: \n")
+    print("\nInput scores:")
     orig = int(input("originality:  \n"))
     imp  = int(input("importance:  \n"))
     sound = int(input("soundness:  \n"))
     overall = (orig+imp+sound)/3
-    paper_to = (paper_ind,)
+    paper_to = (title_to_be[0],)
     c.execute("SELECT Id FROM papers WHERE title=?",paper_to)
     paper_id = c.fetchone()
+    paper_id = paper_id[0]
     insertions = (paper_id,reviewer,orig,imp,sound,overall)
     c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
     print("hi")
