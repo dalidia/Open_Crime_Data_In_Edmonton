@@ -76,6 +76,14 @@ def get_valid_input(conn,c):
 # show all papers 
 def show_current_reviewers(conn, c):
     df, paper_ind = get_valid_input(conn,c)
+<<<<<<< HEAD
+=======
+    try:
+        if paper_ind.upper() == 'Q':
+            return
+    except:
+        pass
+>>>>>>> 05a47f601cbcae31fb235f292cd5806f7fd0e4e6
     
     title_to_be = list(df.iloc[paper_ind])
     p_title= (title_to_be[0],)
@@ -215,21 +223,24 @@ def show_author_participation(conn, c):
         plt.show()
     else:
         print(df.iloc[:,0:1])
-        print("\nProvide the index of the author")
+        print("\nProvide the index of the author, or press 'q'.")
         
         # check if author is one of the authors who participate
         while True:
             try:
-                author_ind = int(input(">"))
-                if (list(df.iloc[author_ind])[0] not in df.author.to_string(index=False)):
+                author_ind = input(">")
+                if author_ind.upper() == "Q":
+                    break
+                elif (list(df.iloc[int(author_ind)])[0] not in df.author.to_string(index=False)):
                     print("Author could not be found. Invalid author. Try again")
                 else:
-                    break
+                    author_to_be = list(df.iloc[author_ind])
+                    print("The number is ", author_to_be[1])
             except:
                 print("Invalid input. Try again.\n")
+                continue
         
-        author_to_be = list(df.iloc[author_ind])
-        print("The number is ", author_to_be[1])
+        
 
     conn.commit()
     return
