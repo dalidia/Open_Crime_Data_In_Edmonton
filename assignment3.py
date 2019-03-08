@@ -92,10 +92,14 @@ def show_potential_reviewers(conn, c):
     df, paper_ind = get_valid_input(conn, c)
     title_to_be = list(df.iloc[paper_ind])
     p_title = (title_to_be[0],title_to_be[0])
+
+    # find the potential reviewers
+    # reviewers who have already reviewed are not displayed
     c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
             EXCEPT select reviewer from papers p, reviews r 
             where p.id=r.paper and p.title=?;''', p_title)
-   
+    
+    # store the output of the query in variabke rows
     rows = c.fetchall()
     size_rows = len(rows)
 
@@ -107,9 +111,18 @@ def show_potential_reviewers(conn, c):
         # if empty
         print("Potential reviewers not assigned")
     
+    # find the author of the paper
+    # author is not allowed to review own paper
+    paper_title = (title_to_be[0],)
+    c.execute("SELECT author FROM papers WHERE title=?;",paper_title)
+    author = c.fetchone()
+    author = author[0]
+    
     while (True):
         reviewer = input("Choose a reviewer or press 'Q' to exit : ")
-        if reviewer not in rows and reviewer.upper() != "Q":
+        if reviewer == author:
+            print("\nNot allowed to review this paper. \n")
+        elif reviewer not in rows and reviewer.upper() != "Q":
             print("\nNot allowed to review this paper. \n")
         elif  reviewer.upper() == "Q":
             print("hey")
@@ -242,7 +255,6 @@ def most_popular_areas(conn, c):
     return
 
 def show_avg_review_scores(conn,c):
-
     
     query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
 			    AVG(SOUNDNESS) as soundness
