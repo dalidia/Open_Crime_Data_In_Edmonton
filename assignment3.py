@@ -53,18 +53,16 @@ def display_pages(conn, c):
 # get valid input and returns the index of a paper and
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
-    print("\nChoose the index of the paper to be selected, or press 'q' to quit.")
+    print("\nChoose the index of the paper to be selected")
     
     # find the number of papers 
     c.execute('''SELECT COUNT(id) FROM papers''')
     paper_range = c.fetchone()
     paper_range = paper_range[0]
     while True:
+        
         try:
-            paper_ind = input(">")
-            if paper_ind.upper() == "Q":
-                break
-            paper_ind = int(paper_ind)
+            paper_ind = int(input(">"))
             if paper_ind < paper_range and paper_ind >= 0:
                 break
             else: 
@@ -78,8 +76,6 @@ def get_valid_input(conn,c):
 # show all papers 
 def show_current_reviewers(conn, c):
     df, paper_ind = get_valid_input(conn,c)
-    if paper_ind.upper() == 'Q':
-        return
     
     title_to_be = list(df.iloc[paper_ind])
     p_title= (title_to_be[0],)
@@ -102,8 +98,6 @@ def show_current_reviewers(conn, c):
 def show_potential_reviewers(conn, c):
     # display pages
     df, paper_ind = get_valid_input(conn, c)
-    if paper_ind.upper() == 'Q':
-        return
     title_to_be = list(df.iloc[paper_ind])
     p_title = (title_to_be[0],title_to_be[0])
 
@@ -291,10 +285,21 @@ def show_avg_review_scores(conn,c):
     reviewers = list(df.reviewer.to_string(index = 'False'))
 
     # plot a grouped bar chart
-    df2 = pd.DataFrame(df,index = reviewers, columns=['originality', 'importance', 'soundness']) 
-    # index =["Anakin@Email","C3P0@Email","Darth@Email",
-    # "Donald@Email","Mickey@Email","Minnie@Email","Pluto@Email",
-    # "R2D2@Email","Tom@Email"]
+    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
+    c.execute('''SELECT reviewer
+        from reviews r, papers p
+        where r.paper = p.id
+        GROUP BY reviewer''')
+    reviewers = c.fetchall()
+    reviewers = list(reviewers)
+    # for j in reviewers:
+    #     reviewers[j] = list(reviewers[j])
+    reviewer_dict = {}
+    keys = range(9)
+    for i in keys:
+            reviewer_dict[i] = reviewers[i]
+    print(reviewer_dict)
+    df2.rename(index = reviewer_dict, inplace = 'True')
     df2.plot.bar()
     plt.plot()
     plt.show()
