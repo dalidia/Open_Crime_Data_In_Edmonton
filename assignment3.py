@@ -69,6 +69,8 @@ def get_valid_input(conn,c):
 # show all papers 
 def show_current_reviewers(conn, c):
     df, paper_ind = get_valid_input(conn,c)
+    if paper_ind.upper() == 'Q':
+        return
     
     title_to_be = list(df.iloc[paper_ind])
     p_title= (title_to_be[0],)
@@ -91,6 +93,8 @@ def show_current_reviewers(conn, c):
 def show_potential_reviewers(conn, c):
     # display pages
     df, paper_ind = get_valid_input(conn, c)
+    if paper_ind.upper() == 'Q':
+        return
     title_to_be = list(df.iloc[paper_ind])
     p_title = (title_to_be[0],title_to_be[0])
 
