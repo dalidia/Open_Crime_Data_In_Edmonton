@@ -140,7 +140,6 @@ def show_potential_reviewers(conn, c):
     # this loop continues unless either the user inputs a valid value or
     # or presses 'q' 
     while (True):
-        print(rows[0][0])
         reviewer = input("Choose a reviewer or press 'q' to quit : ")
         if reviewer == author:
             print("\nNot allowed to review this paper. \n")
