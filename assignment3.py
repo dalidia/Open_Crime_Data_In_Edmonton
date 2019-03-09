@@ -99,32 +99,23 @@ def show_current_reviewers(conn, c):
     
     conn.commit()
     return
-
 def show_potential_reviewers(conn, c):
     # display pages
     df, paper_ind = get_valid_input(conn, c)
-    try:
-        if paper_ind.upper() == 'Q':
-            return
-    except:
-        pass
     title_to_be = list(df.iloc[paper_ind])
-    p_title = (title_to_be[0],title_to_be[0])
 
     # find the potential reviewers
     # reviewers who have already reviewed are not displayed
-    c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
+    query = '''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
             EXCEPT select reviewer from papers p, reviews r 
-            where p.id=r.paper and p.title=?;''', p_title)
+            where p.id=r.paper and p.title=?''' 
     
-    # store the output of the query in variable rows
-    rows = c.fetchall()
-    size_rows = len(rows)
+    paper_title = str(title_to_be[0])
+    df = pd.read_sql_query(query,conn, params = (paper_title,paper_title))
 
     try:
-        # display the email of all reviewers that have reviewed the paper
-        for i in range(0,size_rows):
-           print(rows[i][0])
+        #  display the email of all reviewers that have reviewed the paper
+        print(df.iloc[:])
     except Exception as e:
         # if empty
         print("Potential reviewers not assigned")
@@ -140,15 +131,24 @@ def show_potential_reviewers(conn, c):
     # this loop continues unless either the user inputs a valid value or
     # or presses 'q' 
     while (True):
-        reviewer = input("Choose a reviewer or press 'q' to quit : ")
-        if reviewer == author:
-            print("\nNot allowed to review this paper. \n")
-        elif reviewer not in rows and reviewer.upper() != "Q":
-            print("\nNot allowed to review this paper. \n")
-        elif  reviewer.upper() == "Q":
+        reviewer_ind = input("Choose the index of a reviewer or press 'q' to exit : ")
+        if reviewer_ind.upper() == "Q":
+            print("User wants to quit")
             return
         else:
-            break
+            try:
+                reviewer_index = int(reviewer_ind)
+                if reviewer_index in df.index:
+                    reviewer = df.iloc[reviewer_index]
+                    reviewer_mail = reviewer[0]
+                    if reviewer_mail == author:
+                        print("Authors can't review theri own papers.")
+                    else:
+                        break
+                else: 
+                    print("Invalid index. Please try again.")
+            except Exception as e:
+                print("Invalid input. Please try again.")
 
     # take in the values for scores in each category
     print("\nInput scores:")
@@ -156,19 +156,19 @@ def show_potential_reviewers(conn, c):
     imp  = int(input("\nimportance:  "))
     sound = int(input("\nsoundness:  "))
 
-    # calculate the overall score
+    # calclulate the overall score
     overall = (orig+imp+sound)/3
-    paper_to = (title_to_be[0],)
 
     # find the unique paper id corresponding to the title of the chosen paper
-    c.execute("SELECT Id FROM papers WHERE title=?",paper_to)
+    c.execute("SELECT Id FROM papers WHERE title=?;",paper_title)
     paper_id = c.fetchone()
     paper_id = paper_id[0]
-    insertions = (paper_id,reviewer,orig,imp,sound,overall)
-
-    # insert the new entry into the datbase in table reviews
-    c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
     
+    insertions = (paper_id,reviewer_mail,orig,imp,sound,overall)
+    
+    # insert the new entry into the datbase in table reviews
+    c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?);''', insertions)
+        
     conn.commit()
     return
 
