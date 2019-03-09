@@ -155,9 +155,7 @@ def show_potential_reviewers(conn, c):
     orig = int(input("originality:  "))
     imp  = int(input("\nimportance:  "))
     sound = int(input("\nsoundness:  "))
-
-    # calclulate the overall score
-    overall = (orig+imp+sound)/3
+    overall = int(input("\noverall: "))
 
     # find the unique paper id corresponding to the title of the chosen paper
     c.execute("SELECT Id FROM papers WHERE title=?;",paper_title)
@@ -287,7 +285,8 @@ def show_avg_review_scores(conn,c):
     query = ''' SELECT reviewer, 
                 AVG(ORIGINALITY)as originality, 
                 AVG(IMPORTANCE) as importance,
-			    AVG(SOUNDNESS) as soundness
+			    AVG(SOUNDNESS) as soundness,
+                AVG(OVERALL) as overall
                 FROM reviews r, papers p
                 WHERE  r.paper = p.id
                 GROUP BY reviewer '''
@@ -296,7 +295,7 @@ def show_avg_review_scores(conn,c):
     reviewers = list(df.reviewer.to_string(index = 'False'))
 
     # plot a grouped bar chart
-    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
+    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness', 'overall']) 
     
     # find the mails of the reviewers
     c.execute('''SELECT reviewer
