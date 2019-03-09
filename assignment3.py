@@ -140,10 +140,11 @@ def show_potential_reviewers(conn, c):
     # this loop continues unless either the user inputs a valid value or
     # or presses 'q' 
     while (True):
+        print(rows[0][0])
         reviewer = input("Choose a reviewer or press 'q' to quit : ")
         if reviewer == author:
             print("\nNot allowed to review this paper. \n")
-        elif reviewer not in rows and reviewer.upper() != "Q":
+        elif (reviewer,) not in rows and reviewer.upper() != "Q":
             print("\nNot allowed to review this paper. \n")
         elif  reviewer.upper() == "Q":
             return
@@ -309,7 +310,7 @@ def show_avg_review_scores(conn,c):
     keys = range(9)
     for i in keys:
             reviewer_dict[i] = reviewers[i]
-    print(reviewer_dict)
+    #print(reviewer_dict)
     df2.rename(index = reviewer_dict, inplace = 'True')
     df2.plot.bar()
     plt.plot()
