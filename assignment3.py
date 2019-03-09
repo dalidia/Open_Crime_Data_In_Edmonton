@@ -105,8 +105,11 @@ def show_current_reviewers(conn, c):
 def show_potential_reviewers(conn, c):
     # display pages
     df, paper_ind = get_valid_input(conn, c)
-    if paper_ind.upper() == 'Q':
-        return
+    try:
+        if paper_ind.upper() == 'Q':
+            return
+    except:
+        pass
     title_to_be = list(df.iloc[paper_ind])
     p_title = (title_to_be[0],title_to_be[0])
 
@@ -116,7 +119,7 @@ def show_potential_reviewers(conn, c):
             EXCEPT select reviewer from papers p, reviews r 
             where p.id=r.paper and p.title=?;''', p_title)
     
-    # store the output of the query in variabke rows
+    # store the output of the query in variable rows
     rows = c.fetchall()
     size_rows = len(rows)
 
@@ -139,7 +142,7 @@ def show_potential_reviewers(conn, c):
     # this loop continues unless either the user inputs a valid value or
     # or presses 'q' 
     while (True):
-        reviewer = input("Choose a reviewer or press 'Q' to exit : ")
+        reviewer = input("Choose a reviewer or press 'q' to quit : ")
         if reviewer == author:
             print("\nNot allowed to review this paper. \n")
         elif reviewer not in rows and reviewer.upper() != "Q":
@@ -155,7 +158,7 @@ def show_potential_reviewers(conn, c):
     imp  = int(input("\nimportance:  "))
     sound = int(input("\nsoundness:  "))
 
-    # calclulate the overall score
+    # calculate the overall score
     overall = (orig+imp+sound)/3
     paper_to = (title_to_be[0],)
 
@@ -167,7 +170,7 @@ def show_potential_reviewers(conn, c):
 
     # insert the new entry into the datbase in table reviews
     c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
-        
+    
     conn.commit()
     return
 
