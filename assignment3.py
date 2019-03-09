@@ -297,19 +297,21 @@ def show_avg_review_scores(conn,c):
 
     # plot a grouped bar chart
     df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
+    
+    # find the mails of the reviewers
     c.execute('''SELECT reviewer
         from reviews r, papers p
         where r.paper = p.id
         GROUP BY reviewer''')
     reviewers = c.fetchall()
     reviewers = list(reviewers)
-    # for j in reviewers:
-    #     reviewers[j] = list(reviewers[j])
+    # create a dictionary for df.rename() function because
+    # it only accepts a dictionary
     reviewer_dict = {}
-    keys = range(9)
+    keys = range(len(df.index))
     for i in keys:
-            reviewer_dict[i] = reviewers[i]
-    #print(reviewer_dict)
+            reviewer_dict[i] = reviewers[i][0]
+    # rename the the indices on the x-axis to the mails of the reviewers
     df2.rename(index = reviewer_dict, inplace = 'True')
     df2.plot.bar()
     plt.plot()
