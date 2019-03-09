@@ -236,13 +236,11 @@ def show_author_participation(conn, c):
                 elif (list(df.iloc[int(author_ind)])[0] not in df.author.to_string(index=False)):
                     print("Author could not be found. Invalid author. Try again")
                 else:
-                    author_to_be = list(df.iloc[author_ind])
-                    print("The number is ", author_to_be[1])
+                    author_to_be = list(df.iloc[int(author_ind)])
+                    print("The number is " + str(author_to_be[1]))
             except:
                 print("Invalid input. Try again.\n")
                 continue
-        
-        
 
     conn.commit()
     return
@@ -311,7 +309,7 @@ def show_avg_review_scores(conn,c):
     keys = range(9)
     for i in keys:
             reviewer_dict[i] = reviewers[i]
-    print(reviewer_dict)
+    #print(reviewer_dict)
     df2.rename(index = reviewer_dict, inplace = 'True')
     df2.plot.bar()
     plt.plot()
