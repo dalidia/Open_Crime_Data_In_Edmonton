@@ -313,7 +313,10 @@ def show_avg_review_scores(conn,c):
             reviewer_dict[i] = reviewers[i][0]
     # rename the the indices on the x-axis to the mails of the reviewers
     df2.rename(index = reviewer_dict, inplace = 'True')
-    df2.plot.bar()
+    axis = df2.plot.bar()
+    # label the axes
+    axis.set_xlabel("Reviewers")
+    axis.set_ylabel("Average Scores")
     plt.plot()
     plt.show()
  
