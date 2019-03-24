@@ -12,8 +12,7 @@ def connect(path):
 	conn.commit()
 	return conn, c
 
-# show the barplot for a range of years and a type of crime
-def show_barplot_range(conn,c):
+def get_range(conn,c):
 	while True:
 		try:
 			lb = int(input("Enter start year (YYYY): "))
@@ -24,7 +23,9 @@ def show_barplot_range(conn,c):
 			if lb <= up:
 				break
 			print("Lower bound is less than upper bound. Please enter bounds again.")
-  
+	return lb, up
+
+def get_crime_type(conn,c):
 	df = pd.read_sql_query("SELECT distinct Crime_Type FROM crime_incidents", conn)
 	crimes = df.Crime_Type.to_string(index=False)
 	print(crimes)
@@ -37,6 +38,12 @@ def show_barplot_range(conn,c):
 			break
 		else:
 			print("Crime could not be found. Invalid crime, try again or press 'q' to quit")
+	return crime_type
+
+# show the barplot for a range of years and a type of crime
+def show_barplot_range(conn,c):
+	lb, up = get_range(conn,c)
+	crime_type = get_crime_type(conn,c)
 
 	query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
 	Year <= ? and Crime_Type= ? group by Month'''
@@ -47,6 +54,19 @@ def show_barplot_range(conn,c):
 	plt.show()
 	conn.commit()
 	return
+
+def function_3(conn, c):
+	lb, up = get_range(conn,c)
+	crime_type = get_crime_type(conn,c,)
+
+	query = '''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
+	FROM crime_incidents c, coordinates d
+WHERE c.Year >= 2017 and c.Year <= 2017 and c.Crime_Type= "Break and Enter"  and c.Neighbourhood_Name = d.Neighbourhood_Name
+group by c.Neighbourhood_Name, d.Latitude, d.Longitude 
+order by g desc'''
+
+	
+
 
 def main():
 	while True:
