@@ -6,11 +6,11 @@ import numpy as np
 
 # connects database 
 def connect(path):
-    conn = sqlite3.connect(path)
-    c =conn.cursor()
-    c.execute('PRAGMA foreign_keys=ON; ')
-    conn.commit()
-    return conn, c
+	conn = sqlite3.connect(path)
+	c =conn.cursor()
+	c.execute('PRAGMA foreign_keys=ON; ')
+	conn.commit()
+	return conn, c
 
 # show the barplot for a range of years and a type of crime
 def show_barplot_range(conn,c):
