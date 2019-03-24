@@ -59,15 +59,53 @@ def function_3(conn, c):
 	lb, up = get_range(conn,c)
 	crime_type = get_crime_type(conn,c,)
 
-	query = '''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
-	FROM crime_incidents c, coordinates d
-WHERE c.Year >= 2017 and c.Year <= 2017 and c.Crime_Type= "Break and Enter"  and c.Neighbourhood_Name = d.Neighbourhood_Name
-group by c.Neighbourhood_Name, d.Latitude, d.Longitude 
-order by g desc'''
+	param = (lb,up, crime_type)
+	c.execute('''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
+		FROM crime_incidents c, coordinates d
+		WHERE c.Year >= ? and c.Year <= ? and c.Crime_Type= ?  and c.Neighbourhood_Name = d.Neighbourhood_Name
+		group by c.Neighbourhood_Name, d.Latitude, d.Longitude 
+		order by g desc''', param)
+	neigh_name= c.fetchall()
+	neigh_name = list(neigh_name)
+	num_neigh = len(neigh_name)
+
+	while True:
+		try:
+			int_N = int(input("Enter number of locations: "))
+		except Exception as e:
+			print("Invalid input. Please try again")
+			continue
+		break
+  # list 'most_incidents contains the top N neighbourhoods, including ties
+	most_incidents = []
+	i = 0                   # index to list most_populous,helps in cases with tie
+	j = 0                   # counter for the number of locations entered 
+	prev = None
+
+	while j < int_N and i < num_neigh:
+		most_incidents.append(neigh_name[i][3])
+		if neigh_name[i][3] != prev and len(most_incidents) <= int_N:
+			prev = neigh_name[i][3]
+			j += 1
+		i += 1
+	m = folium.Map(location = [53.5444,-113.323],zoom_start=11)
+	# incident_sum = sum(neigh_name)
+	for index in range(len(most_incidents)):
+		folium.Circle(
+			location = [neigh_name[index][1], neigh_name[index][2]],
+			popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
+			# self note: NEED TO ADJUST THE RADIUS 
+			radius = 100,
+			color = 'crimson',
+			fill = True,
+			fill_color = 'crimson').add_to(m)
+      # self note: ADD COUTNER , CHECK ASSIGNMENT SPEC 
+		m.save("Q3.html")
+	conn.commit()
+	return
+
 
 	
-
-
 def main():
 	while True:
 		try:
@@ -77,7 +115,7 @@ def main():
 			continue
 		break
 
-	functions = [show_barplot_range]
+	functions = [show_barplot_range, function_3]
 	fn_select = "\nInput a number to select a function, or q to quit:"
 
 	while True:
