@@ -12,6 +12,7 @@ def connect(path):
     conn.commit()
     return conn, c
 
+# show the barplot for a range of years and a type of crime
 def show_barplot_range(conn,c):
   while True:
     try:
@@ -40,10 +41,10 @@ def show_barplot_range(conn,c):
   query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
   Year <= ? and Crime_Type= ? group by Month'''
   df = pd.read_sql_query(query,conn, params=(lb,up,crime_type))
+  # graph barplot
   plot = df.plot.bar(x="Month")
   plt.plot()
   plt.show()
-
   conn.commit()
   return
 
