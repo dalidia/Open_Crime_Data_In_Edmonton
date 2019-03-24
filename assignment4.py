@@ -12,7 +12,7 @@ def connect(path):
 	conn.commit()
 	return conn, c
 
-def get_range(conn,c):
+def get_range_years(conn,c):
 	while True:
 		try:
 			lb = int(input("Enter start year (YYYY): "))
@@ -42,7 +42,7 @@ def get_crime_type(conn,c):
 
 # show the barplot for a range of years and a type of crime
 def show_barplot_range(conn,c):
-	lb, up = get_range(conn,c)
+	lb, up = get_range_years(conn,c)
 	crime_type = get_crime_type(conn,c)
 
 	query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
@@ -56,7 +56,7 @@ def show_barplot_range(conn,c):
 	return
 
 def function_3(conn, c):
-	lb, up = get_range(conn,c)
+	lb, up = get_range_years(conn,c)
 	crime_type = get_crime_type(conn,c,)
 
 	query = '''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
@@ -65,7 +65,7 @@ WHERE c.Year >= 2017 and c.Year <= 2017 and c.Crime_Type= "Break and Enter"  and
 group by c.Neighbourhood_Name, d.Latitude, d.Longitude 
 order by g desc'''
 
-	
+
 
 
 def main():
