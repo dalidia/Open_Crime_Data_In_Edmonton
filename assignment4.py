@@ -6,11 +6,11 @@ import numpy as np
 
 # connects database 
 def connect(path):
-    conn = sqlite3.connect(path)
-    c =conn.cursor()
-    c.execute('PRAGMA foreign_keys=ON; ')
-    conn.commit()
-    return conn, c
+	conn = sqlite3.connect(path)
+	c =conn.cursor()
+	c.execute('PRAGMA foreign_keys=ON; ')
+	conn.commit()
+	return conn, c
 
 # show the barplot for a range of years and a type of crime
 def show_barplot_range(conn,c):
@@ -51,12 +51,12 @@ def show_barplot_range(conn,c):
 
 def main():
 	while True:
-    	try:
-    		conn, c = connect(input("Enter the name of the database: "))
-	 except:
-      	print("Incorrect input. Please try again.")
-      	continue
-    break
+		try:
+			conn, c = connect(input("Enter the name of the database: "))
+		except:
+			print("Incorrect input. Please try again.")
+			continue
+		break
 
 	functions = [show_barplot_range]
 	fn_select = "\nInput a number to select a function, or q to quit:"
