@@ -142,7 +142,7 @@ def show_potential_reviewers(conn, c):
                     reviewer = df.iloc[reviewer_index]
                     reviewer_mail = reviewer[0]
                     if reviewer_mail == author:
-                        print("Authors can't review theri own papers.")
+                        print("Authors can't review their own papers.")
                     else:
                         break
                 else: 
