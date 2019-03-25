@@ -187,7 +187,8 @@ def n_highest_crime_population_ratios(conn, c):
              group by n_name1) as MXS
         where CTS.n_name = MXS.n_name1 and CTS.cnt = MXS.mx) as M,
         (select Neighbourhood_name as n_name, Latitude, Longitude
-        from coordinates) as L
+        from coordinates
+        where Latitude != 0.0 and Longitude != 0.0) as L
     where P.n_name = C.n_name and C.n_name = M.n_name and M.n_name = L.n_name
     order by crime_ratio desc;
     '''.format(lb, ub, lb, ub, lb, ub)
