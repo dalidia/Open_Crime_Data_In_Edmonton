@@ -11,6 +11,63 @@ def connect(path):
     # conn.commit()
     return conn, c
 
+def get_range_years():
+    lb = None
+    up = None
+    while True:
+        try:
+            lb = int(input("Enter start year (YYYY): "))
+            up = int(input("Enter end year (YYYY): "))
+        except:
+            print("Invalid bounds. Please try again")
+        else:
+            if up < lb:
+                print("Upper bound is less than lower bound. Please enter bounds again.")
+                continue
+        break
+    return lb, up
+
+def first_n_with_ties(arr, eq, n):
+    val = None
+    i = n - 1
+    if i < 0:
+        return 0
+    if i < len(arr):
+        val = arr[i]
+        while n < len(arr) and eq(arr[n], val):
+            n += 1
+        return n
+    return len(arr)
+
+def collapse_index(lst, index):
+    info = []
+    i = 0
+    while i < len(lst):
+        curr = list(lst[i][:index]) + [[lst[i][index]]] + list(lst[i][index + 1:])
+        c1 = list(lst[i][:index]) + list(lst[i][index + 1:])
+        i += 1
+        while i < len(lst) and list(lst[i][:index]) + list(lst[i][index + 1:]) == c1:
+            curr[index].append(lst[i][index])
+            i += 1
+        info.append(curr)
+        #print(curr)
+    return info
+
+def get_filename(base, ext):
+    n = 0
+    mid = ''
+    name = ''
+    while True:
+        try:
+            name = base + mid + ext
+            file = open(name, 'r')
+            file.close()
+            n += 1
+            mid = '-' + str(n)
+        except:
+            break
+    return name
+
 def most_least_populous(conn,c):
     # while True:
     #     try:
@@ -93,8 +150,68 @@ def most_least_populous(conn,c):
         m.save("Q2.html")
     
     # conn.commit()
-    return 
+    return
+
+def n_highest_crime_population_ratios(conn, c):
+    lb, ub = get_range_years()
+    n = 0
+    while True:
+        try:
+            n = int(input("Enter the number of locations: "))
+            assert(n > 0)
+        except:
+            print("Invalid input, please try again. ")
+            continue
+        break
+
+    query = '''
+    select P.n_name, (C.total_crimes*1.0) / P.total_pop as crime_ratio, M.mcc, L.Latitude, L.Longitude
+    from
+        (select Neighbourhood_Name as n_name, CANADIAN_CITIZEN + NON_CANADIAN_CITIZEN + NO_RESPONSE as total_pop
+        from population
+        where total_pop > 0) as P,
+        (select Neighbourhood_Name as n_name, sum(Incidents_Count) as total_crimes
+        from crime_incidents
+        where Year >= {} and Year <= {}
+        group by n_name) as C,
+        (select n_name, mcc
+        from (select Neighbourhood_Name as n_name, Crime_Type as mcc, count(*) as cnt 
+             from crime_incidents
+             where Year >= {} and Year <= {}
+             group by n_name, mcc) as CTS,
+             (select n_name1, max(cnt) as mx
+             from (select Neighbourhood_Name as n_name1, Crime_Type as mcc, count(*) as cnt 
+                  from crime_incidents
+                  where Year >= {} and Year <= {}
+                  group by n_name1, mcc)
+             group by n_name1) as MXS
+        where CTS.n_name = MXS.n_name1 and CTS.cnt = MXS.mx) as M,
+        (select Neighbourhood_name as n_name, Latitude, Longitude
+        from coordinates
+        where Latitude != 0.0 and Longitude != 0.0) as L
+    where P.n_name = C.n_name and C.n_name = M.n_name and M.n_name = L.n_name
+    order by crime_ratio desc;
+    '''.format(lb, ub, lb, ub, lb, ub)
+
+    info = collapse_index(list(c.execute(query).fetchall()), 2)
+    info = info[:first_n_with_ties(info, (lambda l1, l2: l1[1] == l2[1]), n)]
+
+    m = folium.Map(location = [53.5444, -113.323], zoom_start = 11)
+
+    for i in info:
+        folium.Circle(
+            location = [i[3], i[4]],
+            popup = "{} <br> {} <br> {}".format(i[0], ", ".join(i[2]), i[1]),
+            radius= 1000*i[1],
+            color= 'crimson',
+            fill= True,
+            fill_color= 'crimson'
+        ).add_to(m)
+
+    m.save(get_filename("Q4", ".html"))
+
 def main():
+    #'''
     while True:
         try:
             conn, c = connect(input("Enter the name of the database: "))
@@ -102,8 +219,10 @@ def main():
             print("Incorrect input. Please try again.")
             continue
         break
+    #'''
+    #conn, c = connect("./a4-sampled.db")
     
-    functions = [most_least_populous]
+    functions = [most_least_populous, n_highest_crime_population_ratios]
     fn_select = "\nInput a number to select a function, or q to quit:"
     while True:
         print(fn_select)
