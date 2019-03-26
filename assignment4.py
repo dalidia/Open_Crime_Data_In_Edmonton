@@ -69,7 +69,6 @@ def function_3(conn, c):
 	neigh_name = list(neigh_name)
 	num_neigh = len(neigh_name)
 
-<<<<<<< HEAD
 	while True:
 		try:
 			int_N = int(input("Enter number of locations: "))
@@ -82,9 +81,6 @@ def function_3(conn, c):
 	i = 0                   # index to list most_populous,helps in cases with tie
 	j = 0                   # counter for the number of locations entered 
 	prev = None
-=======
-
->>>>>>> 1bae4136455b16fc15c0eb4cbbd31de84aebccf2
 
 	while j < int_N and i < num_neigh:
 		most_incidents.append(neigh_name[i][3])
