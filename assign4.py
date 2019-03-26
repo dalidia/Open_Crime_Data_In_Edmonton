@@ -11,7 +11,7 @@ def connect(path):
     conn.commit()
     return conn, c
 
-def get_range_years(conn,c):
+def get_range_years():
     lb = None
     up = None
     while True:
@@ -43,7 +43,7 @@ def get_crime_type(conn,c):
 
 # show the barplot for a range of years and a type of crime
 def show_barplot_range(conn,c):
-	lb, up = get_range_years(conn,c)
+	lb, up = get_range_years()
 	crime_type = get_crime_type(conn,c)
 
 	query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
@@ -156,7 +156,7 @@ def most_least_populous(conn,c):
     return
 
 def top_n_with_crime(conn, c):
-    lb, up = get_range_years(conn,c)
+    lb, up = get_range_years()
     crime_type = get_crime_type(conn,c,)
 
     param = (lb,up, crime_type)
@@ -175,10 +175,10 @@ def top_n_with_crime(conn, c):
             continue
         break
     
-    # list 'most_incidents will contain the top N neighbourhoods, including ties
+    # list 'most_incidents' will contain the top N neighbourhoods, including ties
     most_incidents = neigh_name[:first_n_with_ties(neigh_name,(lambda l1,l2:l1[3]) == l2[3],int_N)]
     m = folium.Map(location = [53.5444,-113.323],zoom_start=11)
-	# incident_sum = sum(neigh_name)
+	
     for index in range(len(most_incidents)):
         folium.Circle(
 			location = [neigh_name[index][1], neigh_name[index][2]],
