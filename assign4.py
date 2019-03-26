@@ -11,7 +11,7 @@ def connect(path):
     conn.commit()
     return conn, c
 
-def get_range_years(conn,c):
+def get_range_years():
     lb = None
     up = None
     while True:
@@ -24,26 +24,32 @@ def get_range_years(conn,c):
             if lb <= up:
                 break
             print("Upper bound is less than lower bound. Please enter bounds again.")
-        return lb, up
+    return lb, up
 
 def get_crime_type(conn,c):
-	df = pd.read_sql_query("SELECT distinct Crime_Type FROM crime_incidents", conn)
-	crimes = df.Crime_Type.to_string(index=False)
-	print(crimes)
+    df = pd.read_sql_query("SELECT distinct Crime_Type FROM crime_incidents", conn)
+    print(df)
 
-	while True:
-		crime_type = input("Enter the crime type: ").capitalize()
-		if crime_type == 'Q':
-			return
-		elif crime_type in crimes:
-			break
-		else:
-			print("Crime could not be found. Invalid crime, try again or press 'q' to quit")
-	return crime_type
+    crime_index= None
+    while True:
+        crime_index = input("Enter the index of the crime: ")
+        if crime_index.upper() == 'Q':
+            return
+        try:
+            crime_index = int(crime_index)
+            if crime_index in df.index:
+                crime_type = df.iloc[crime_index]
+                crime_type = crime_type[0]
+                break
+            else:
+                print("Crime could not be found. Invalid crime, try again or press 'q' to quit")
+        except:
+            print("Invalid input. Please try again.")
+    return crime_type
 
 # show the barplot for a range of years and a type of crime
 def show_barplot_range(conn,c):
-	lb, up = get_range_years(conn,c)
+	lb, up = get_range_years()
 	crime_type = get_crime_type(conn,c)
 
 	query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
@@ -182,7 +188,7 @@ def most_least_populous(conn,c):
     return
 
 def top_n_with_crime(conn, c):
-	lb, up = get_range_years(conn,c)
+	lb, up = get_range_years()
 	crime_type = get_crime_type(conn,c,)
 
 	param = (lb,up, crime_type)
