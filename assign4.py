@@ -8,7 +8,7 @@ def connect(path):
     conn = sqlite3.connect(path)
     c =conn.cursor()
     c.execute('PRAGMA foreign_keys=ON; ')
-    # conn.commit()
+    conn.commit()
     return conn, c
 
 def get_range_years(conn,c):
@@ -22,7 +22,7 @@ def get_range_years(conn,c):
             print("Invalid bounds. Please try again")
         else:
             if lb <= up:
-	        break
+                break
             print("Upper bound is less than lower bound. Please enter bounds again.")
         return lb, up
 
@@ -289,7 +289,6 @@ def n_highest_crime_population_ratios(conn, c):
     m.save(get_filename("Q4", ".html"))
 
 def main():
-    #'''
     while True:
         try:
             conn, c = connect(input("Enter the name of the database: "))
@@ -297,8 +296,6 @@ def main():
             print("Incorrect input. Please try again.")
             continue
         break
-    #'''
-    #conn, c = connect("./a4-sampled.db")
     
     functions = [show_barplot_range, most_least_populous, top_n_with_crime, n_highest_crime_population_ratios]
     fn_select = "\nInput a number to select a function, or q to quit:"
@@ -316,7 +313,7 @@ def main():
                 print("\nInvalid input, please try again.")
                 continue
             fn(conn, c)
-    # conn.commit()
-    # conn.close()
+    conn.commit()
+    conn.close()
 
 main()
