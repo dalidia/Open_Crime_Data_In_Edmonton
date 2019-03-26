@@ -162,13 +162,8 @@ def most_least_populous(conn,c):
     return
 
 def top_n_with_crime(conn, c):
-<<<<<<< HEAD
-	lb, up = get_range_years()
-	crime_type = get_crime_type(conn,c,)
-=======
     lb, up = get_range_years()
     crime_type = get_crime_type(conn,c,)
->>>>>>> 094b27435f515304c46a28c1ce1a78f14e3744f0
 
     param = (lb,up, crime_type)
     c.execute('''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
@@ -187,18 +182,18 @@ def top_n_with_crime(conn, c):
         break
     
     # list 'most_incidents' will contain the top N neighbourhoods, including ties
-    most_incidents = neigh_name[:first_n_with_ties(neigh_name,(lambda l1,l2:l1[3]) == l2[3],int_N)]
+    most_incidents = neigh_name[:first_n_with_ties(neigh_name, (lambda l1, l2:l1[3]== l2[3]), int_N)]
     m = folium.Map(location = [53.5444,-113.323],zoom_start=11)
 	
     for index in range(len(most_incidents)):
         folium.Circle(
 			location = [neigh_name[index][1], neigh_name[index][2]],
 			popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
-			radius = 100,
+			radius = neigh_name[index][3] *100,
 			color = 'crimson',
 			fill = True,
 			fill_color = 'crimson').add_to(m)
-        m.save(get_filename("Q3",".html"))
+    m.save(get_filename("Q3",".html"))
     conn.commit()
     return
 
