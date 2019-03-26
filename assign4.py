@@ -214,12 +214,12 @@ def n_highest_crime_population_ratios(conn, c):
         where Year >= {} and Year <= {}
         group by n_name) as C,
         (select n_name, mcc
-        from (select Neighbourhood_Name as n_name, Crime_Type as mcc, count(*) as cnt 
+        from (select Neighbourhood_Name as n_name, Crime_Type as mcc, sum(Incidents_Count) as cnt 
              from crime_incidents
              where Year >= {} and Year <= {}
              group by n_name, mcc) as CTS,
              (select n_name1, max(cnt) as mx
-             from (select Neighbourhood_Name as n_name1, Crime_Type as mcc, count(*) as cnt 
+             from (select Neighbourhood_Name as n_name1, Crime_Type as mcc, sum(Incidents_Count) as cnt 
                   from crime_incidents
                   where Year >= {} and Year <= {}
                   group by n_name1, mcc)
