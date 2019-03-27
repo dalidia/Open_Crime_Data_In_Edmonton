@@ -185,11 +185,12 @@ def top_n_with_crime(conn, c):
         break
     
     # list 'most_incidents' will contain the top N neighbourhoods, including ties
-    most_incidents = neigh_name[:first_n_with_ties(neigh_name,(lambda l1,l2:l1[3]) == l2[3],int_N)]
+    most_incidents = neigh_name[:first_n_with_ties(neigh_name, (lambda l1, l2:l1[3]== l2[3]), int_N)]
     m = folium.Map(location = [53.5444,-113.323],zoom_start=11)
 	
     for index in range(len(most_incidents)):
         folium.Circle(
+<<<<<<< HEAD
             location = [neigh_name[index][1], neigh_name[index][2]],
             popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
             radius = 100,
@@ -197,6 +198,15 @@ def top_n_with_crime(conn, c):
             fill = True,
             fill_color = 'crimson').add_to(m)
         m.save(get_filename("Q3",".html"))
+=======
+			location = [neigh_name[index][1], neigh_name[index][2]],
+			popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
+			radius = neigh_name[index][3] *100,
+			color = 'crimson',
+			fill = True,
+			fill_color = 'crimson').add_to(m)
+    m.save(get_filename("Q3",".html"))
+>>>>>>> 213a07012fc6b14de9cd297a4741c632a657312e
     conn.commit()
     return
 
