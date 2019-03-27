@@ -190,23 +190,13 @@ def top_n_with_crime(conn, c):
 	
     for index in range(len(most_incidents)):
         folium.Circle(
-<<<<<<< HEAD
             location = [neigh_name[index][1], neigh_name[index][2]],
             popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
-            radius = 100,
+            radius = neigh_name[index][3] *100,
             color = 'crimson',
             fill = True,
             fill_color = 'crimson').add_to(m)
-        m.save(get_filename("Q3",".html"))
-=======
-			location = [neigh_name[index][1], neigh_name[index][2]],
-			popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
-			radius = neigh_name[index][3] *100,
-			color = 'crimson',
-			fill = True,
-			fill_color = 'crimson').add_to(m)
     m.save(get_filename("Q3",".html"))
->>>>>>> 213a07012fc6b14de9cd297a4741c632a657312e
     conn.commit()
     return
 
