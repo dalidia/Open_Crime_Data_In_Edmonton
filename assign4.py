@@ -49,18 +49,22 @@ def get_crime_type(conn,c):
 
 # show the barplot for a range of years and a type of crime
 def show_barplot_range(conn,c):
-	lb, up = get_range_years()
-	crime_type = get_crime_type(conn,c)
+    lb, up = get_range_years()
+    crime_type = get_crime_type(conn,c)
 
-	query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
-	Year <= ? and Crime_Type= ? group by Month'''
-	df = pd.read_sql_query(query,conn, params=(lb,up,crime_type))
-	# graph barplot
-	plot = df.plot.bar(x="Month")
-	plt.plot()
-	plt.show()
-	conn.commit()
-	return
+    query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
+    Year <= ? and Crime_Type= ? group by Month'''
+    df = pd.read_sql_query(query,conn, params=(lb,up,crime_type))
+    # graph barplot
+    try:
+        plot = df.plot.bar(x="Month")
+        plt.plot()
+        plt.show()
+        plt.savefig(get_filename("Q1", ".png"))
+    except:
+        print("There were no values to print. The graph is empty.") #???
+    conn.commit()
+    return 
 
 def first_n_with_ties(arr, eq, n):
     val = None
@@ -157,25 +161,19 @@ def most_least_populous(conn,c):
             fill = True,
             fill_color = 'crimson').add_to(m)
     m.save(get_filename("Q2",".html"))
-    
     conn.commit()
     return
 
 def top_n_with_crime(conn, c):
-<<<<<<< HEAD
-	lb, up = get_range_years()
-	crime_type = get_crime_type(conn,c,)
-=======
     lb, up = get_range_years()
     crime_type = get_crime_type(conn,c,)
->>>>>>> 094b27435f515304c46a28c1ce1a78f14e3744f0
 
     param = (lb,up, crime_type)
     c.execute('''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
-		FROM crime_incidents c, coordinates d
-		WHERE c.Year >= ? and c.Year <= ? and c.Crime_Type= ?  and c.Neighbourhood_Name = d.Neighbourhood_Name
-		group by c.Neighbourhood_Name, d.Latitude, d.Longitude 
-		order by g desc''', param)
+        FROM crime_incidents c, coordinates d
+        WHERE c.Year >= ? and c.Year <= ? and c.Crime_Type= ?  and c.Neighbourhood_Name = d.Neighbourhood_Name
+        group by c.Neighbourhood_Name, d.Latitude, d.Longitude 
+        order by g desc''', param)
     neigh_name= c.fetchall()
     neigh_name = list(neigh_name)
     while True:
@@ -192,12 +190,12 @@ def top_n_with_crime(conn, c):
 	
     for index in range(len(most_incidents)):
         folium.Circle(
-			location = [neigh_name[index][1], neigh_name[index][2]],
-			popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
-			radius = 100,
-			color = 'crimson',
-			fill = True,
-			fill_color = 'crimson').add_to(m)
+            location = [neigh_name[index][1], neigh_name[index][2]],
+            popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
+            radius = 100,
+            color = 'crimson',
+            fill = True,
+            fill_color = 'crimson').add_to(m)
         m.save(get_filename("Q3",".html"))
     conn.commit()
     return
@@ -226,15 +224,15 @@ def n_highest_crime_population_ratios(conn, c):
         group by n_name) as C,
         (select n_name, mcc
         from (select Neighbourhood_Name as n_name, Crime_Type as mcc, sum(Incidents_Count) as cnt 
-             from crime_incidents
-             where Year >= {} and Year <= {}
-             group by n_name, mcc) as CTS,
-             (select n_name1, max(cnt) as mx
-             from (select Neighbourhood_Name as n_name1, Crime_Type as mcc, sum(Incidents_Count) as cnt 
-                  from crime_incidents
-                  where Year >= {} and Year <= {}
-                  group by n_name1, mcc)
-             group by n_name1) as MXS
+            from crime_incidents
+            where Year >= {} and Year <= {}
+            group by n_name, mcc) as CTS,
+            (select n_name1, max(cnt) as mx
+            from (select Neighbourhood_Name as n_name1, Crime_Type as mcc, sum(Incidents_Count) as cnt 
+                from crime_incidents
+                where Year >= {} and Year <= {}
+                group by n_name1, mcc)
+            group by n_name1) as MXS
         where CTS.n_name = MXS.n_name1 and CTS.cnt = MXS.mx) as M,
         (select Neighbourhood_name as n_name, Latitude, Longitude
         from coordinates
