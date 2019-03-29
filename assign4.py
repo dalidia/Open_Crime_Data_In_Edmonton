@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 import numpy as np
 import folium
+from math import sqrt
 
 def connect(path):
     conn = sqlite3.connect(path)
@@ -37,7 +38,7 @@ def get_crime_type(conn,c):
             return
         try:
             crime_index = int(crime_index)
-            if crime_index in df.index:
+            if crime_index in df.index and crime_index > 0:
                 crime_type = df.iloc[crime_index]
                 crime_type = crime_type[0]
                 break
@@ -52,15 +53,15 @@ def show_barplot_range(conn,c):
     lb, up = get_range_years()
     crime_type = get_crime_type(conn,c)
 
-    query = '''SELECT Month, COUNT(*) FROM crime_incidents WHERE Year >= ? and 
+    query = '''SELECT Month, sum(Incidents_Count) FROM crime_incidents WHERE Year >= ? and 
     Year <= ? and Crime_Type= ? group by Month'''
     df = pd.read_sql_query(query,conn, params=(lb,up,crime_type))
     # graph barplot
     try:
         plot = df.plot.bar(x="Month")
         plt.plot()
-        plt.show()
         plt.savefig(get_filename("Q1", ".png"))
+        plt.show()
     except:
         print("There were no values to print. The graph is empty.") #???
     conn.commit()
@@ -121,9 +122,7 @@ def most_least_populous(conn,c):
                 p.Neighbourhood_Name, Latitude, Longitude,
                 CANADIAN_CITIZEN+NON_CANADIAN_CITIZEN+NO_RESPONSE as total_pop
                 FROM population p, coordinates c
-                WHERE p.Neighbourhood_Name = c.Neighbourhood_Name
-                GROUP BY p.Neighbourhood_Name, total_pop
-                HAVING total_pop > 0
+                WHERE p.Neighbourhood_Name = c.Neighbourhood_Name and total_pop > 0 and c.Latitude != 0.0 and c.Longitude != 0
                 ORDER BY total_pop DESC''')
     areas = c.fetchall()
     areas = list(areas)
@@ -169,9 +168,9 @@ def top_n_with_crime(conn, c):
     crime_type = get_crime_type(conn,c,)
 
     param = (lb,up, crime_type)
-    c.execute('''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
+    c.execute('''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count) as g
         FROM crime_incidents c, coordinates d
-        WHERE c.Year >= ? and c.Year <= ? and c.Crime_Type= ?  and c.Neighbourhood_Name = d.Neighbourhood_Name
+        WHERE c.Year >= ? and c.Year <= ? and c.Crime_Type= ? and c.Neighbourhood_Name = d.Neighbourhood_Name and d.Latitude != 0.0 and d.Longitude != 0
         group by c.Neighbourhood_Name, d.Latitude, d.Longitude 
         order by g desc''', param)
     neigh_name= c.fetchall()
@@ -192,7 +191,7 @@ def top_n_with_crime(conn, c):
         folium.Circle(
             location = [neigh_name[index][1], neigh_name[index][2]],
             popup = neigh_name[index][0] + "<br>" + str(neigh_name[index][3]),
-            radius = neigh_name[index][3] *100,
+            radius = sqrt(neigh_name[index][3]) * 20,
             color = 'crimson',
             fill = True,
             fill_color = 'crimson').add_to(m)
