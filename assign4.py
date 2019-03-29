@@ -5,6 +5,7 @@ import numpy as np
 import folium
 from math import sqrt
 
+# connect database
 def connect(path):
     conn = sqlite3.connect(path)
     c =conn.cursor()
@@ -15,6 +16,7 @@ def connect(path):
 def get_range_years():
     lb = None
     up = None
+    # get valid years
     while True:
         try:
             lb = int(input("Enter start year (YYYY): "))
@@ -29,9 +31,11 @@ def get_range_years():
 
 def get_crime_type(conn,c):
     df = pd.read_sql_query("SELECT distinct Crime_Type FROM crime_incidents", conn)
+    # show all crimes
     print(df)
 
     crime_index= None
+    # get valid crime type
     while True:
         crime_index = input("Enter the index of the crime: ")
         if crime_index.upper() == 'Q':
