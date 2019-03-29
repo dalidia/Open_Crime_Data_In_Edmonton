@@ -67,7 +67,8 @@ def show_barplot_range(conn,c):
         plt.savefig(get_filename("Q1", ".png"))
         plt.show()
     except:
-        print("There were no values to print. The graph is empty.") #???
+
+        print("There were no values to print. The graph is empty.")
     conn.commit()
     return 
 
