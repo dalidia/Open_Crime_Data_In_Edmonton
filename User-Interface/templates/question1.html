@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{% block title %}Question 1{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>291 Assignment 4</title>
+        <meta charset="UTF-8">
+    </head>
+
+    <body>
+        <br><br>
+        {% while valid != True %}
+        <form method="POST">
+            <label>Enter start year (YYYY): </label>
+            <input name="lb">
+            <br>
+            <label>Enter end year (YYYY): </label>
+            <input name="up">
+            <br>
+            <label>Enter the index of the crime:</label>
+            <input name="crime_index">
+            <br>
+        </form>
+        {% end while%}
+        {% if show_image == True %}
+            <img src="{% image1 %}">
+        {% endif %}
+    </body>
+
+</html>
+{% endblock %}
