@@ -72,6 +72,9 @@ def show_barplot_range(conn,c):
     conn.commit()
     return 
 
+# This function takes a sorted array, a function that can check equality between two array elements, and the minimum amount of array elements desired.
+# The first n elements and any elements equivalent to the n^th element will be selected from the array, unless n < 0 or the n given to the function
+# is greater than the length of the array, in which case the length of the array is returned.
 def first_n_with_ties(arr, eq, n):
     val = None
     i = n - 1
@@ -84,10 +87,14 @@ def first_n_with_ties(arr, eq, n):
         return n
     return len(arr)
 
+# This function takes a sorted list of lists/tuples and returns a list of lists that contain lists at index. Lists that are the same except for at
+# index are combined and the elements at index are added to a list. 
 def collapse_index(lst, index):
     info = []
     i = 0
     while i < len(lst):
+        # While i < the length of the list, add the element at i to its own list. Then add the elements of equivalent lists at index
+        # to this list at index until no more equivalent lists are found, then repeat for the next element.
         curr = list(lst[i][:index]) + [[lst[i][index]]] + list(lst[i][index + 1:])
         c1 = list(lst[i][:index]) + list(lst[i][index + 1:])
         i += 1
@@ -98,11 +105,13 @@ def collapse_index(lst, index):
         #print(curr)
     return info
 
+# This function takes a base filename to (potentially) increment and a file extension. An unused filename is returned. 
 def get_filename(base, ext):
     n = 0
     mid = ''
     name = ''
     while True:
+        # Try opening files until the file does not exist. Return that filename.
         try:
             name = base + mid + ext
             file = open(name, 'r')
@@ -238,6 +247,8 @@ def top_n_with_crime(conn, c):
 
 def n_highest_crime_population_ratios(conn, c):
     lb, ub = get_range_years()
+
+    # Input the number of locations to show from the user
     n = 0
     while True:
         try:
@@ -250,8 +261,7 @@ def n_highest_crime_population_ratios(conn, c):
 
     query = '''
     select P.n_name, (C.total_crimes*1.0) / P.total_pop as crime_ratio, M.mcc, L.Latitude, L.Longitude
-    from
-        (select Neighbourhood_Name as n_name, CANADIAN_CITIZEN + NON_CANADIAN_CITIZEN + NO_RESPONSE as total_pop
+    from (select Neighbourhood_Name as n_name, CANADIAN_CITIZEN + NON_CANADIAN_CITIZEN + NO_RESPONSE as total_pop
         from population
         where total_pop > 0) as P,
         (select Neighbourhood_Name as n_name, sum(Incidents_Count) as total_crimes
@@ -274,9 +284,10 @@ def n_highest_crime_population_ratios(conn, c):
         from coordinates
         where Latitude != 0.0 and Longitude != 0.0) as L
     where P.n_name = C.n_name and C.n_name = M.n_name and M.n_name = L.n_name
-    order by crime_ratio desc;
+    order by crime_ratio desc, P.n_name;
     '''.format(lb, ub, lb, ub, lb, ub)
 
+    # Execute the query, then call collapse_index to catch any ties for most common crime, then get the first n elements with ties in crime/pop ratio.
     info = collapse_index(list(c.execute(query).fetchall()), 2)
     info = info[:first_n_with_ties(info, (lambda l1, l2: l1[1] == l2[1]), n)]
 
