@@ -50,23 +50,15 @@ def display_pages(conn, c):
     conn.commit()
     return df
 
-# get valid input and returns the index of a paper and
+# get valid input and returns the index of a paper
 def get_valid_input(conn,c):
     df = display_pages(conn, c)
     print("\nChoose the index of the paper to be selected")
-    
-    # find the number of papers 
-    c.execute('''SELECT COUNT(id) FROM papers''')
-    paper_range = c.fetchone()
-    paper_range = paper_range[0]
+
     while True:
-        
         try:
             paper_ind = int(input(">"))
-            if paper_ind < paper_range and paper_ind >= 0:
-                break
-            else: 
-                print("Out of range. Please, try again")
+            break
         except Exception as e:
             print("Invalid input. Please, try again")
             continue
@@ -76,11 +68,6 @@ def get_valid_input(conn,c):
 # show all papers 
 def show_current_reviewers(conn, c):
     df, paper_ind = get_valid_input(conn,c)
-    try:
-        if paper_ind.upper() == 'Q':
-            return
-    except:
-        pass
     
     title_to_be = list(df.iloc[paper_ind])
     p_title= (title_to_be[0],)
@@ -99,74 +86,41 @@ def show_current_reviewers(conn, c):
     
     conn.commit()
     return
+
 def show_potential_reviewers(conn, c):
-    # display pages
     df, paper_ind = get_valid_input(conn, c)
     title_to_be = list(df.iloc[paper_ind])
-
-    # find the potential reviewers
-    # reviewers who have already reviewed are not displayed
-    query = '''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
+    p_title = (title_to_be[0],title_to_be[0])
+    c.execute('''select reviewer from papers p, expertise e where p.area=e.area and p.title=? 
             EXCEPT select reviewer from papers p, reviews r 
-            where p.id=r.paper and p.title=?''' 
+            where p.id=r.paper and p.title=?;''', p_title)
+   
+    rows = c.fetchall()
+    size_rows = len(rows)
     
-    paper_title = str(title_to_be[0])
-    df = pd.read_sql_query(query,conn, params = (paper_title,paper_title))
-
     try:
-        #  display the email of all reviewers that have reviewed the paper
-        print(df.iloc[:])
+        # display the email of all reviewers that have reviewed the paper
+        for i in range(0,size_rows):
+           print(rows[i][0])
     except Exception as e:
         # if empty
         print("Potential reviewers not assigned")
     
-    # find the author of the paper
-    # author is not allowed to review own paper
-    paper_title = (title_to_be[0],)
-    c.execute("SELECT author FROM papers WHERE title=?;",paper_title)
-    author = c.fetchone()
-    author = author[0]
-    
-    # ask for the email of reviewer and check if it is valid
-    # this loop continues unless either the user inputs a valid value or
-    # or presses 'q' 
-    while (True):
-        reviewer_ind = input("Choose the index of a reviewer or press 'q' to exit : ")
-        if reviewer_ind.upper() == "Q":
-            print("User wants to quit")
-            return
-        else:
-            try:
-                reviewer_index = int(reviewer_ind)
-                if reviewer_index in df.index:
-                    reviewer = df.iloc[reviewer_index]
-                    reviewer_mail = reviewer[0]
-                    if reviewer_mail == author:
-                        print("Authors can't review their own papers.")
-                    else:
-                        break
-                else: 
-                    print("Invalid index. Please try again.")
-            except Exception as e:
-                print("Invalid input. Please try again.")
+    #
 
-    # take in the values for scores in each category
-    print("\nInput scores:")
-    orig = int(input("originality:  "))
-    imp  = int(input("\nimportance:  "))
-    sound = int(input("\nsoundness:  "))
-    overall = int(input("\noverall: "))
-
-    # find the unique paper id corresponding to the title of the chosen paper
-    c.execute("SELECT Id FROM papers WHERE title=?;",paper_title)
+    reviewer = input("Choose a reviewer")
+    print("\nInput scores for:")
+    orig = int(input("originality:  \n"))
+    imp  = int(input("importance:  \n"))
+    sound = int(input("soundness:  \n"))
+    overall = (orig+imp+sound)/3
+    paper_to = (title_to_be[0],)
+    c.execute("SELECT Id FROM papers WHERE title=?",paper_to)
     paper_id = c.fetchone()
     paper_id = paper_id[0]
-    
-    insertions = (paper_id,reviewer_mail,orig,imp,sound,overall)
-    
-    # insert the new entry into the datbase in table reviews
-    c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?);''', insertions)
-        
+    insertions = (paper_id,reviewer,orig,imp,sound,overall)
+    c.execute('''INSERT INTO reviews VALUES (?,?,?,?,?,?)''', insertions)
+    print("hi")
     conn.commit()
     return
 
@@ -205,12 +159,11 @@ def get_reviews_in_range(conn, c):
     conn.commit()
     return
 
-# show in how many sessions do authors participate in being able to choose 2 options
 def show_author_participation(conn, c):
     query = "SELECT author, COUNT(csession) as count FROM papers WHERE decision='A' GROUP BY author"
     df = pd.read_sql_query(query, conn)
-    # select valid option
-    while True:
+    
+    while(True):
         option = input('''Select 1 if you want see a barplot of all individual authors and how many sessions they participate in, or 2 if you want to be provided with a number for a selected individual\n''')
         if option == '1' or option == '2':
             break
@@ -222,23 +175,26 @@ def show_author_participation(conn, c):
         plt.plot()
         plt.show()
     else:
-        print(df.iloc[:,0:1])
-        print("\nProvide the index of the author, or press 'q'.")
+        c.execute(query)
+        rows = c.fetchall()
+        size = len(rows)
+
+        # check if rows is empty SHOULD I PUT THIS???
+        if size == 0:
+            print("There's no input")
+
+        print("Provide the author\n")
+        author = input(">")
         
-        # check if author is one of the authors who participate
-        while True:
-            try:
-                author_ind = input(">")
-                if author_ind.upper() == "Q":
-                    break
-                elif (list(df.iloc[int(author_ind)])[0] not in df.author.to_string(index=False)):
-                    print("Author could not be found. Invalid author. Try again")
-                else:
-                    author_to_be = list(df.iloc[int(author_ind)])
-                    print("The number is " + str(author_to_be[1]))
-            except:
-                print("Invalid input. Try again.\n")
-                continue
+        found = False
+        # look for author
+        for i in range(0,size):
+            if rows[i][0] == author:
+                print(rows[i][1])
+                found = True
+        
+        if(not found):
+            print("Author could not be found. Invalid author.")
 
     conn.commit()
     return
@@ -281,41 +237,18 @@ def most_popular_areas(conn, c):
     return
 
 def show_avg_review_scores(conn,c):
-    # find the average review scores for each category for each reviwer 
-    query = ''' SELECT reviewer, 
-                AVG(ORIGINALITY)as originality, 
-                AVG(IMPORTANCE) as importance,
-			    AVG(SOUNDNESS) as soundness,
-                AVG(OVERALL) as overall
+
+    
+    query = ''' SELECT reviewer, AVG(ORIGINALITY)as originality, AVG(IMPORTANCE) as importance,
+			    AVG(SOUNDNESS) as soundness
                 FROM reviews r, papers p
                 WHERE  r.paper = p.id
                 GROUP BY reviewer '''
-
     df = pd.read_sql_query(query, conn)
-    reviewers = list(df.reviewer.to_string(index = 'False'))
-
-    # plot a grouped bar chart
-    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness', 'overall']) 
     
-    # find the mails of the reviewers
-    c.execute('''SELECT reviewer
-        from reviews r, papers p
-        where r.paper = p.id
-        GROUP BY reviewer''')
-    reviewers = c.fetchall()
-    reviewers = list(reviewers)
-    # create a dictionary for df.rename() function because
-    # it only accepts a dictionary
-    reviewer_dict = {}
-    keys = range(len(df.index))
-    for i in keys:
-            reviewer_dict[i] = reviewers[i][0]
-    # rename the the indices on the x-axis to the mails of the reviewers
-    df2.rename(index = reviewer_dict, inplace = 'True')
-    axis = df2.plot.bar()
-    # label the axes
-    axis.set_xlabel("Reviewers")
-    axis.set_ylabel("Average Scores")
+    
+    df2 = pd.DataFrame(df, columns=['originality', 'importance', 'soundness']) 
+    df2.plot.bar()
     plt.plot()
     plt.show()
  
@@ -331,7 +264,7 @@ def main():
             continue
         break
 
-    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas, show_avg_review_scores]
+    functions = [show_current_reviewers, show_potential_reviewers, get_reviews_in_range, show_author_participation, most_popular_areas,show_avg_review_scores]
     fn_select = "\nInput a number to select a function, or q to quit:"
     while True:
         print(fn_select)
