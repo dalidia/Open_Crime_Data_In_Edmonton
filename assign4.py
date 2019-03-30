@@ -108,6 +108,8 @@ def get_filename(base, ext):
     return name
 
 def most_least_populous(conn,c):
+
+    # get the value of N from the user
     while True:
         try:
             int_N = int(input("Enter number of locations: "))
@@ -116,7 +118,8 @@ def most_least_populous(conn,c):
             continue
         break
 
-    # query to find the most/least populous areas 
+    # the query returns a list of the population of each neighbourhood
+    # in a descending order
     c.execute(''' SELECT 
                 p.Neighbourhood_Name, Latitude, Longitude,
                 CANADIAN_CITIZEN+NON_CANADIAN_CITIZEN+NO_RESPONSE as total_pop
@@ -128,19 +131,28 @@ def most_least_populous(conn,c):
     areas = c.fetchall()
     areas = list(areas)
 
+    # call the first_n_with_ties function to find the N MOST
+    # populated neighbourhoods considering ties
     most_populous = areas[:first_n_with_ties(areas, (lambda l1, l2:l1[3]== l2[3]), int_N)]
+
+    # reversing the areas list stores the neighbourhoods with their 
+    # populations in an ascending order
     areas_rev = areas.copy()
+
+    # call the first_n_with_ties function to find the N LEAST
+    # populated neighbourhoods considering ties
     areas_rev.reverse()
     least_populous = areas_rev[:first_n_with_ties(areas_rev, (lambda l1, l2:l1[3]== l2[3]), int_N)]
     
-    # "scale is to scale the populations for the circle markers
+    # scale is to scale the populations for the circle markers
     scale = 0
     for i in range(len(most_populous)):
         scale = scale + most_populous[i][3]
     for i in range(len(least_populous)):
         scale = scale + least_populous[i][3]
 
-    m = folium.Map(location = [53.5444,-113.323],zoom_start=11)
+    # define the area of the map to be shown
+    m = folium.Map(location = [53.5444,-113.323], zoom_start=11)
 
     # map the most populous areas
     for index in range(len(most_populous)):
@@ -150,7 +162,9 @@ def most_least_populous(conn,c):
             radius = (areas[index][3]/scale)*5000,
             color = 'crimson',
             fill = True,
-            fill_color = 'crimson').add_to(m)
+            fill_color = 'crimson'
+            ).add_to(m)
+
     # map the least populous areas
     for index in range(len(least_populous)):
         folium.Circle(
@@ -159,7 +173,10 @@ def most_least_populous(conn,c):
             radius = (areas_rev[index][3]/scale)*5000,
             color = 'crimson',
             fill = True,
-            fill_color = 'crimson').add_to(m)
+            fill_color = 'crimson'
+            ).add_to(m)
+
+    # save the mapped areas in a .html file
     m.save(get_filename("Q2",".html"))
     conn.commit()
     return
@@ -168,6 +185,8 @@ def top_n_with_crime(conn, c):
     lb, up = get_range_years()
     crime_type = get_crime_type(conn,c,)
 
+    # the query gets the sum of a given type of crime commited in each neighbourhood
+    # within the given range of years
     param = (lb,up, crime_type)
     c.execute('''SELECT c.Neighbourhood_Name, d.Latitude, d.Longitude, sum(Incidents_Count)  as g
         FROM crime_incidents c, coordinates d
@@ -176,6 +195,8 @@ def top_n_with_crime(conn, c):
         order by g desc''', param)
     neigh_name= c.fetchall()
     neigh_name = list(neigh_name)
+
+    # get the integer N from the user 
     while True:
         try:
             int_N = int(input("Enter number of locations: "))
@@ -186,8 +207,11 @@ def top_n_with_crime(conn, c):
     
     # list 'most_incidents' will contain the top N neighbourhoods, including ties
     most_incidents = neigh_name[:first_n_with_ties(neigh_name, (lambda l1, l2:l1[3]== l2[3]), int_N)]
+
+    # define the area of the map to be shown
     m = folium.Map(location = [53.5444,-113.323],zoom_start=11)
 	
+    # map the top N neighbourhoods with most crimes of the given crime type
     for index in range(len(most_incidents)):
         folium.Circle(
             location = [neigh_name[index][1], neigh_name[index][2]],
@@ -195,7 +219,10 @@ def top_n_with_crime(conn, c):
             radius = neigh_name[index][3] *100,
             color = 'crimson',
             fill = True,
-            fill_color = 'crimson').add_to(m)
+            fill_color = 'crimson'
+            ).add_to(m)
+
+    # save the map in a .html file
     m.save(get_filename("Q3",".html"))
     conn.commit()
     return
@@ -205,7 +232,7 @@ def n_highest_crime_population_ratios(conn, c):
     n = 0
     while True:
         try:
-            n = int(input("Enter the number of locations: "))
+            n = int(input("Enter number of locations: "))
             assert(n > 0)
         except:
             print("Invalid input, please try again. ")
@@ -268,7 +295,7 @@ def main():
         break
     
     functions = [show_barplot_range, most_least_populous, top_n_with_crime, n_highest_crime_population_ratios]
-    fn_select = "\nInput a number to select a function, or q to quit:"
+    fn_select = "\nEnter your choice or press q to quit:"
     while True:
         print(fn_select)
         for i in range(0, len(functions)):
